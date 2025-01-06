@@ -1,0 +1,1879 @@
+basePath: /
+definitions:
+  controllers.AddCubesRequest:
+    properties:
+      cubes_to_add:
+        example: 10
+        type: integer
+    type: object
+  controllers.AddTokensToBotBalanceRequest:
+    properties:
+      amount:
+        description: Сумма для добавления
+        type: number
+      token_type:
+        description: Тип токена (например, ton_balance)
+        type: string
+    required:
+    - amount
+    - token_type
+    type: object
+  controllers.CreateWithdrawalRequest:
+    properties:
+      amount:
+        type: number
+      jetton_name:
+        type: string
+      wallet:
+        type: string
+    type: object
+  controllers.InitializeBotBalanceRequest:
+    properties:
+      dfc_balance:
+        description: Баланс DFC
+        type: number
+      m5_balance:
+        description: Баланс M5
+        type: number
+      ton_balance:
+        description: Баланс Ton
+        type: number
+    required:
+    - dfc_balance
+    - m5_balance
+    - ton_balance
+    type: object
+  controllers.PlayDiceGameRequest:
+    properties:
+      bet_amount:
+        description: Ставка
+        type: number
+      target_score:
+        description: Цель по очкам
+        maximum: 45
+        minimum: 15
+        type: integer
+      token_type:
+        description: Тип токена
+        type: string
+      wallet:
+        description: Адрес кошелька
+        type: string
+    required:
+    - bet_amount
+    - target_score
+    - token_type
+    - wallet
+    type: object
+  controllers.SubtractTokensFromBotBalanceRequest:
+    properties:
+      amount:
+        description: Сумма для вычитания
+        type: number
+      token_type:
+        description: Тип токена (например, ton_balance)
+        type: string
+    required:
+    - amount
+    - token_type
+    type: object
+  controllers.UpdateTokensRequest:
+    properties:
+      dfc_balance:
+        type: number
+      m5_balance:
+        type: number
+      ton_balance:
+        type: number
+    type: object
+  controllers.Withdrawal:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      id:
+        type: string
+      jetton_name:
+        type: string
+      wallet:
+        type: string
+    type: object
+  entities.BotBalanceEntity:
+    properties:
+      created_at:
+        type: string
+      dfc_balance:
+        type: number
+      m5_balance:
+        type: number
+      ton_balance:
+        type: number
+      updated_at:
+        type: string
+    type: object
+  entities.User:
+    properties:
+      created_at:
+        type: string
+      cubes:
+        type: integer
+      dfc_balance:
+        type: number
+      first_name:
+        description: Новое поле FirstName
+        type: string
+      id:
+        type: string
+      language:
+        type: string
+      m5_balance:
+        type: number
+      name:
+        type: string
+      points:
+        type: number
+      referral_code:
+        type: string
+      referral_earnings:
+        additionalProperties:
+          type: number
+        type: object
+      referred_by:
+        type: string
+      tgid:
+        type: string
+      ton_balance:
+        type: number
+      updated_at:
+        type: string
+      wallet:
+        type: string
+    type: object
+  entity.PromoCodeEntity:
+    properties:
+      activatedWallets:
+        description: List of wallets that have activated the promocode
+        items:
+          type: string
+        type: array
+      amount:
+        description: Reward amount
+        type: number
+      code:
+        description: Unique code for the promocode
+        type: string
+      createdAt:
+        description: Creation timestamp
+        type: string
+      expiresAt:
+        description: Expiration date
+        type: string
+      id:
+        type: string
+      maxActivations:
+        description: Maximum activations allowed
+        type: integer
+      status:
+        allOf:
+        - $ref: '#/definitions/entity.PromoCodeStatus'
+        description: Current status
+      tokenType:
+        description: Reward type
+        type: string
+      updatedAt:
+        description: Last update timestamp
+        type: string
+      usedActivations:
+        description: Number of times the promocode has been used
+        type: integer
+    type: object
+  entity.PromoCodeStatus:
+    enum:
+    - active
+    - expired
+    - depleted
+    type: string
+    x-enum-comments:
+      Active: Promocode is active and can be used
+      Depleted: Promocode has reached max activations
+      Expired: Promocode has expired
+    x-enum-varnames:
+    - Active
+    - Expired
+    - Depleted
+  general.GameRecord:
+    properties:
+      bet_amount:
+        description: Сумма ставки
+        type: number
+      counter:
+        description: Changed to int64
+        type: integer
+      player1_earnings:
+        description: Заработок первого игрока
+        type: number
+      player1_name:
+        description: Имя первого игрока
+        type: string
+      player1_score:
+        description: Счет первого игрока
+        type: integer
+      player1_wallet:
+        description: Кошелек первого игрока
+        type: string
+      player2_earnings:
+        description: Заработок второго игрока
+        type: number
+      player2_name:
+        description: Имя второго игрока
+        type: string
+      player2_score:
+        description: Счет второго игрока
+        type: integer
+      player2_wallet:
+        description: Кошелек второго игрока
+        type: string
+      time_played:
+        description: 'Время игры (формат времени: RFC3339)'
+        type: string
+      token_type:
+        description: Тип токена
+        type: string
+      winner:
+        description: Победитель
+        type: string
+    type: object
+  odm_entities.UserEntity:
+    properties:
+      created_at:
+        type: string
+      cubes:
+        type: integer
+      dfc_balance:
+        type: number
+      first_name:
+        description: Новое поле FirstName
+        type: string
+      id:
+        type: string
+      language:
+        type: string
+      m5_balance:
+        type: number
+      name:
+        type: string
+      points:
+        type: number
+      referral_code:
+        type: string
+      referral_earnings:
+        additionalProperties:
+          type: number
+        type: object
+      referred_by:
+        type: string
+      tgid:
+        type: string
+      ton_balance:
+        type: number
+      updated_at:
+        type: string
+      wallet:
+        type: string
+    type: object
+  slots.ErrorResponse:
+    properties:
+      message:
+        description: Сообщение об ошибке
+        type: string
+    type: object
+  slots.GameRecord:
+    properties:
+      bet:
+        description: Ставка
+        type: number
+      result:
+        description: Результат игры
+        type: string
+      timestamp:
+        description: Время игры
+        type: string
+      wallet:
+        description: Кошелек игрока
+        type: string
+      win_amount:
+        description: Выигрыш
+        type: number
+    type: object
+  slots.InitializeBalanceRequest:
+    properties:
+      cubes:
+        description: Баланс в кубах
+        type: number
+      tons:
+        description: Баланс в тоннах
+        type: number
+    type: object
+  slots.PlaySlotRequest:
+    properties:
+      cubes:
+        description: Ставка в кубах (опционально)
+        type: integer
+      ton:
+        description: Ставка в тоннах (опционально)
+        type: number
+      wallet:
+        description: Кошелек пользователя
+        type: string
+    required:
+    - wallet
+    type: object
+  slots.PlaySlotResponse:
+    properties:
+      result_combo:
+        description: Комбинация чисел
+        items:
+          type: integer
+        type: array
+      win_amount:
+        description: Выигрыш
+        type: number
+    type: object
+  slots.RecordGameRequest:
+    properties:
+      bet:
+        description: Ставка игрока
+        type: number
+      result:
+        description: Результат игры
+        type: string
+      wallet:
+        description: Кошелек игрока
+        type: string
+      win_amount:
+        description: Выигрыш игрока
+        type: number
+    type: object
+  slots.SlotsBalanceResponse:
+    properties:
+      cubes:
+        description: Баланс в кубах
+        type: number
+      tons:
+        description: Баланс в тоннах
+        type: number
+      updated_at:
+        description: Время последнего обновления
+        type: string
+    type: object
+  slots.SuccessResponse:
+    properties:
+      status:
+        description: Статус успешного выполнения
+        type: string
+    type: object
+  slots.TokenOperationRequest:
+    properties:
+      amount:
+        description: Сумма токенов
+        type: number
+      token_type:
+        description: Тип токенов (tons или cubes)
+        type: string
+    required:
+    - amount
+    - token_type
+    type: object
+  slots.UpdateBalanceRequest:
+    properties:
+      cubes_delta:
+        description: Изменение баланса в кубах
+        type: number
+      tons_delta:
+        description: Изменение баланса в тоннах
+        type: number
+    type: object
+host: api.m5dice.com
+info:
+  contact: {}
+  description: API for managing users and games in TG-Dice application
+  title: TG-Dice API
+  version: "1.0"
+paths:
+  /bot/balance:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает все балансы бота
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.BotBalanceEntity'
+        "500":
+          description: Ошибка при получении баланса бота
+          schema:
+            type: string
+      summary: Получает все балансы бота
+      tags:
+      - bot-balance
+  /bot/balance/{tokenType}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает баланс конкретного токена
+      parameters:
+      - description: Тип токена (ton_balance, m5_balance, dfc_balance)
+        in: path
+        name: tokenType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: number
+        "400":
+          description: Некорректный тип токена
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении баланса токена
+          schema:
+            type: string
+      summary: Получает баланс конкретного токена
+      tags:
+      - bot-balance
+  /bot/balance/add:
+    post:
+      consumes:
+      - application/json
+      description: Adds the specified amount of tokens to the bot balance
+      parameters:
+      - description: Token type and amount to add
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AddTokensToBotBalanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation error or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add tokens to bot balance
+      tags:
+      - bot-balance
+  /bot/balance/subtract:
+    post:
+      consumes:
+      - application/json
+      description: Subtracts the specified amount of tokens from the bot balance
+      parameters:
+      - description: Token type and amount to subtract
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.SubtractTokensFromBotBalanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Validation error or invalid parameters
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Subtract tokens from bot balance
+      tags:
+      - bot-balance
+  /games/bot/balance:
+    post:
+      consumes:
+      - application/json
+      description: Initialize bot balance in the system
+      parameters:
+      - description: Bot balance data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.InitializeBotBalanceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Баланс бота успешно инициализирован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка с параметрами запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка при обработке запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Initialize Bot Balance
+      tags:
+      - bot
+  /games/dice:
+    post:
+      consumes:
+      - application/json
+      description: Play a dice game with the bot, returning detailed round-by-round
+        results
+      parameters:
+      - description: Game data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.PlayDiceGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Игровой результат
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Ошибка с параметрами запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка при обработке запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Play Dice Game with Bot
+      tags:
+      - bot
+      - games
+  /games/history:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список последних игр с ограничением по количеству
+      parameters:
+      - default: 50
+        description: Лимит количества записей
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/general.GameRecord'
+            type: array
+        "500":
+          description: Ошибка при получении истории игр
+          schema:
+            type: string
+      summary: Получает общую историю игр
+      tags:
+      - game-history
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет данные игры (имена игроков, счета, победителя, заработанные
+        средства, тип токена, сумму ставки)
+      parameters:
+      - description: Информация об игре
+        in: body
+        name: gameRecord
+        required: true
+        schema:
+          $ref: '#/definitions/general.GameRecord'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Игра сохранена успешно
+          schema:
+            type: string
+        "400":
+          description: Некорректные данные
+          schema:
+            type: string
+        "500":
+          description: Ошибка при сохранении игры
+          schema:
+            type: string
+      summary: Создает запись об игре
+      tags:
+      - game-history
+  /games/history/{wallet}:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список последних игр для конкретного пользователя по
+        кошельку с ограничением по количеству
+      parameters:
+      - description: Кошелек пользователя
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - default: 50
+        description: Лимит количества записей
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/general.GameRecord'
+            type: array
+        "400":
+          description: Некорректный кошелек
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении истории игр
+          schema:
+            type: string
+      summary: Получает историю игр пользователя
+      tags:
+      - game-history
+  /games/simulate-user-win/{wallet}:
+    post:
+      consumes:
+      - application/json
+      description: Симулирует игру, где пользователь выигрывает. Результат игры и
+        начисление кубов.
+      parameters:
+      - description: Wallet адрес пользователя
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'result: game result'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: wallet is required'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: error message'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Симуляция победы пользователя в игре
+      tags:
+      - games
+  /promocodes/{code}:
+    get:
+      description: Retrieve details of a specific promocode by its code
+      parameters:
+      - description: Promocode code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Promocode details
+          schema:
+            $ref: '#/definitions/entity.PromoCodeEntity'
+        "404":
+          description: Promocode not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get promocode details
+      tags:
+      - PromoCodes
+  /promocodes/activate:
+    post:
+      consumes:
+      - application/json
+      description: Activate a promocode by providing the code and user wallet
+      parameters:
+      - description: Activation request (wallet and code)
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Promocode activated successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "404":
+          description: Promocode or user not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Activate a promocode
+      tags:
+      - PromoCodes
+  /promocodes/active:
+    get:
+      description: Retrieve all active promocodes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of active promocodes
+          schema:
+            items:
+              $ref: '#/definitions/entity.PromoCodeEntity'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: List active promocodes
+      tags:
+      - PromoCodes
+  /promocodes/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a promocode with details like code, type, amount, and activations
+      parameters:
+      - description: Promocode details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.PromoCodeEntity'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Promocode created successfully
+          schema:
+            type: string
+        "400":
+          description: Invalid request payload
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new promocode
+      tags:
+      - PromoCodes
+  /promocodes/expire:
+    post:
+      description: Mark all expired promocodes as expired
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Expired promocodes successfully
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Expire outdated promocodes
+      tags:
+      - PromoCodes
+  /referrals/level:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список рефералов на заданном уровне
+      parameters:
+      - description: Referral code
+        in: query
+        name: referral_code
+        required: true
+        type: string
+      - description: Level (1, 2, or 3)
+        in: query
+        name: level
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/odm_entities.UserEntity'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение рефералов по уровню
+      tags:
+      - referrals
+  /referrals/levels:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список рефералов, разделенных по уровням (level1, level2,
+        level3)
+      parameters:
+      - description: Wallet address
+        in: query
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                type: string
+              type: array
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение рефералов по уровням
+      tags:
+      - referrals
+  /referrals/total:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает общее количество рефералов для данного реферального
+        кода
+      parameters:
+      - description: Referral code
+        in: query
+        name: referral_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение общего количества рефералов
+      tags:
+      - referrals
+  /slots/{wallet}/games:
+    get:
+      consumes:
+      - application/json
+      description: Получить все игры, сыгранные пользователем по его кошельку
+      parameters:
+      - description: Кошелек игрока
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Лимит количества игр
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список игр
+          schema:
+            items:
+              $ref: '#/definitions/slots.GameRecord'
+            type: array
+        "400":
+          description: Ошибка с некорректным лимитом
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера при получении игр
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Получить все игры по кошельку
+      tags:
+      - Slots
+  /slots/{wallet}/recent-games:
+    get:
+      consumes:
+      - application/json
+      description: Получить последние игры пользователя по его кошельку
+      parameters:
+      - description: Кошелек игрока
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Лимит количества игр
+        in: query
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список последних игр
+          schema:
+            items:
+              $ref: '#/definitions/slots.GameRecord'
+            type: array
+        "400":
+          description: Ошибка с некорректным лимитом
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера при получении последних игр
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Получить последние игры по кошельку
+      tags:
+      - Slots
+  /slots/balance:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает общий баланс в тоннах и кубах
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Общий баланс
+          schema:
+            $ref: '#/definitions/slots.SlotsBalanceResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Получение общего баланса
+      tags:
+      - Slots
+  /slots/balance/add:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет указанное количество токенов к балансу
+      parameters:
+      - description: Данные для добавления токенов
+        in: body
+        name: tokenOperationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.TokenOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токены успешно добавлены
+          schema:
+            $ref: '#/definitions/slots.SuccessResponse'
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Добавление токенов
+      tags:
+      - Slots
+  /slots/balance/initialize:
+    post:
+      consumes:
+      - application/json
+      description: Устанавливает общий баланс в тоннах и кубах
+      parameters:
+      - description: Данные для инициализации баланса
+        in: body
+        name: initializeBalanceRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.InitializeBalanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Баланс успешно инициализирован
+          schema:
+            $ref: '#/definitions/slots.SuccessResponse'
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Инициализация баланса
+      tags:
+      - Slots
+  /slots/balance/subtract:
+    post:
+      consumes:
+      - application/json
+      description: Вычитает указанное количество токенов из баланса
+      parameters:
+      - description: Данные для вычитания токенов
+        in: body
+        name: tokenOperationRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.TokenOperationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Токены успешно вычтены
+          schema:
+            $ref: '#/definitions/slots.SuccessResponse'
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Вычитание токенов
+      tags:
+      - Slots
+  /slots/balance/update:
+    patch:
+      consumes:
+      - application/json
+      description: Изменяет общий баланс в тоннах и кубах
+      parameters:
+      - description: Данные для обновления баланса
+        in: body
+        name: updateBalanceRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.UpdateBalanceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Баланс успешно обновлен
+          schema:
+            $ref: '#/definitions/slots.SuccessResponse'
+        "400":
+          description: Некорректные данные запроса
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Обновление баланса
+      tags:
+      - Slots
+  /slots/play:
+    post:
+      consumes:
+      - application/json
+      description: Выполнение игры в слоты с выбором ставки
+      parameters:
+      - description: Параметры игры
+        in: body
+        name: playSlotRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.PlaySlotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Результат игры
+          schema:
+            $ref: '#/definitions/slots.PlaySlotResponse'
+        "400":
+          description: Ошибка с некорректной ставкой
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Запуск игры в слоты
+      tags:
+      - Slots
+  /slots/record:
+    post:
+      consumes:
+      - application/json
+      description: Сохранить информацию о сыгранной игре в базе данных
+      parameters:
+      - description: Данные игры
+        in: body
+        name: recordGameRequest
+        required: true
+        schema:
+          $ref: '#/definitions/slots.RecordGameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Игра успешно записана
+          schema:
+            $ref: '#/definitions/slots.SuccessResponse'
+        "400":
+          description: Ошибка с некорректной ставкой или выигрышем
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера при записи игры
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Записать информацию о сыгранной игре
+      tags:
+      - Slots
+  /users:
+    get:
+      description: Retrieve a list of users with optional pagination
+      parameters:
+      - description: Number of users to retrieve
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List users with pagination
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Для создания Необходим только валлет
+      parameters:
+      - description: User details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/entities.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entities.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      description: Delete a user from the system by their ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a user by ID
+      tags:
+      - users
+    get:
+      description: Retrieve a user by their unique ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a user by ID
+      tags:
+      - users
+  /users/{wallet}/balances:
+    get:
+      description: Get token balances (ton_balance, m5_balance, dfc_balance) and cubes
+        for a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Balances (ton_balance, m5_balance, dfc_balance, cubes)
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user balances
+      tags:
+      - users
+  /users/{wallet}/cubes:
+    patch:
+      consumes:
+      - application/json
+      description: Increment the number of cubes for a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Number of cubes to add
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.AddCubesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Add cubes to a user
+      tags:
+      - users
+  /users/{wallet}/points:
+    get:
+      description: Retrieve the points of a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User Points
+          schema:
+            additionalProperties:
+              type: number
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get user points by wallet
+      tags:
+      - users
+  /users/{wallet}/referral-code:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the referral code for a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get referral code by user wallet
+      tags:
+      - users
+  /users/{wallet}/referral-earnings:
+    get:
+      description: Retrieve all referral earnings (ton_balance, m5_balance, dfc_balance)
+        for a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Referral earnings (ton_balance, m5_balance, dfc_balance)
+          schema:
+            additionalProperties:
+              type: number
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get referral earnings by user wallet
+      tags:
+      - users
+  /users/{wallet}/tokens:
+    patch:
+      consumes:
+      - application/json
+      description: Update the balances of one or more tokens for a user by their wallet
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Token balances to update (e.g., {\
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateTokensRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user token balances
+      tags:
+      - users
+  /users/{wallet}/withdrawals:
+    get:
+      description: Retrieve a list of withdrawals for a user by their wallet address
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      - description: Number of withdrawals to retrieve
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of withdrawals
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Withdrawal'
+            type: array
+        "500":
+          description: Error fetching withdrawals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get withdrawals by user wallet
+      tags:
+      - users
+  /users/name/{name}:
+    get:
+      description: Retrieve a user by their unique name
+      parameters:
+      - description: User Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.User'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a user by name
+      tags:
+      - users
+  /users/points:
+    get:
+      description: Retrieve a list of users sorted by their points in descending order
+      parameters:
+      - description: Number of users to retrieve
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get users sorted by points
+      tags:
+      - users
+  /users/tgid/{tgid}:
+    patch:
+      consumes:
+      - application/json
+      description: Update only specific fields of a user identified by TgID
+      parameters:
+      - description: Telegram ID
+        in: path
+        name: tgid
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: updateData
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated fields
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Partially update a user by TgID
+      tags:
+      - users
+  /users/withdrawal/{id}:
+    delete:
+      description: Delete a withdrawal request by its unique ID
+      parameters:
+      - description: Withdrawal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Withdrawal deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Withdrawal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a withdrawal by ID
+      tags:
+      - users
+    get:
+      description: Retrieve a withdrawal by its unique ID
+      parameters:
+      - description: Withdrawal ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Withdrawal details
+          schema:
+            $ref: '#/definitions/controllers.Withdrawal'
+        "404":
+          description: Withdrawal not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a withdrawal by ID
+      tags:
+      - users
+  /users/withdrawals/last-50:
+    get:
+      description: Retrieve the last 50 withdrawals in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of the last 50 withdrawals
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Withdrawal'
+            type: array
+        "500":
+          description: Error fetching withdrawals
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the last 50 withdrawals
+      tags:
+      - users
+  /users/withdrawals/last-50-with-jetton:
+    get:
+      description: Retrieve the last 50 withdrawals that include jetton
+      parameters:
+      - description: User Wallet
+        in: path
+        name: wallet
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of the last 50 withdrawals with jetton
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Withdrawal'
+            type: array
+        "500":
+          description: Error fetching withdrawals with jetton
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the last 50 withdrawals with jetton
+      tags:
+      - users
+  /users/withdrawals/last-50-without-jetton:
+    get:
+      description: Retrieve the last 50 withdrawals that do not include jetton
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of the last 50 withdrawals without jetton
+          schema:
+            items:
+              $ref: '#/definitions/controllers.Withdrawal'
+            type: array
+        "500":
+          description: Error fetching withdrawals without jetton
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the last 50 withdrawals without jetton
+      tags:
+      - users
+  /withdrawals:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового запроса на вывод средств
+      parameters:
+      - description: Withdrawal details
+        in: body
+        name: withdrawal
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateWithdrawalRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new withdrawal
+      tags:
+      - withdrawals
+schemes:
+- https
+swagger: "2.0"

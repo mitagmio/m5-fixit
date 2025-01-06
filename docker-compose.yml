@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./docs:/app/docs  # Монтируем локальную директорию ./docs внутрь контейнера
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGO_URI=mongodb://root:example@mongo:27017/tgdice?authSource=admin
+      - DB_NAME=tgdice
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=yourpassword
+    depends_on:
+      - mongo
+      - redis
+    restart: always
+
+  mongo:
+    image: mongo:6.0
+    container_name: tg-dice-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  redis:
+    image: redis:7.0
+    container_name: tg-dice-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--requirepass", "yourpassword"]
+
+volumes:
+  mongo-data:

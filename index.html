@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice PvP Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            height: 200px;
+            overflow-y: auto;
+        }
+        #create-lobby-options {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #ddd;
+        }
+        #available-lobbies th {
+            background-color: #ddd;
+        }
+        .join-btn {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dice PvP Game</h1>
+    <div id="create-lobby-options">
+        <label for="wallet">Wallet:</label>
+        <input type="text" id="wallet" placeholder="Enter your wallet address">
+
+        <label for="token-type">Token Type:</label>
+        <select id="token-type">
+            <option value="ton_balance">TON Balance</option>
+            <option value="m5_balance">M5 Balance</option>
+            <option value="dfc_balance">DFC Balance</option>
+        </select>
+
+        <label for="bet-amount">Bet Amount:</label>
+        <input type="number" id="bet-amount" min="1" placeholder="Enter Bet Amount">
+
+        <label for="target-score">Target Score:</label>
+        <input type="number" id="target-score" min="15" max="45" placeholder="15-45">
+    </div>
+    <button id="create-lobby-btn">Create Lobby</button>
+    <button id="roll-dice-btn" disabled>Roll Dice</button>
+    <div id="log"></div>
+
+    <div id="available-lobbies">
+        <h2>Available Lobbies:</h2>
+        <table id="lobbies-table">
+            <thead>
+                <tr>
+                    <th>Lobby ID</th>
+                    <th>Player1</th>
+                    <th>Token Type</th>
+                    <th>Bet Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Lobbies will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const socket = new WebSocket("ws://localhost:8080/ws/dice");
+        let currentLobbyId = null;
+        let isGameStarted = false;
+
+        // Log messages
+        function logMessage(message) {
+            const logDiv = document.querySelector("#log");
+            const newMessage = document.createElement("p");
+            newMessage.textContent = message;
+            logDiv.appendChild(newMessage);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Clear the lobbies table
+        function clearLobbiesTable() {
+            const tbody = document.querySelector("#lobbies-table tbody");
+            tbody.innerHTML = "";
+        }
+
+        // Add a lobby to the table
+        function addLobbyToTable(lobby) {
+            const tbody = document.querySelector("#lobbies-table tbody");
+            const newRow = document.createElement("tr");
+
+            const lobbyIdCell = document.createElement("td");
+            lobbyIdCell.textContent = lobby.lobby_id;
+
+            const player1Cell = document.createElement("td");
+            player1Cell.textContent = lobby.player1;
+
+            const tokenTypeCell = document.createElement("td");
+            tokenTypeCell.textContent = lobby.token_type;
+
+            const betAmountCell = document.createElement("td");
+            betAmountCell.textContent = lobby.bet_amount;
+
+            const actionCell = document.createElement("td");
+            const joinButton = document.createElement("button");
+            joinButton.textContent = "Join";
+            joinButton.className = "join-btn";
+            joinButton.onclick = () => joinLobby(lobby.lobby_id, lobby.token_type);
+            actionCell.appendChild(joinButton);
+
+            newRow.appendChild(lobbyIdCell);
+            newRow.appendChild(player1Cell);
+            newRow.appendChild(tokenTypeCell);
+            newRow.appendChild(betAmountCell);
+            newRow.appendChild(actionCell);
+
+            tbody.appendChild(newRow);
+        }
+
+        // Update the lobbies list
+        function updateLobbiesList(lobbies) {
+            clearLobbiesTable();
+            if (lobbies && lobbies.length > 0) {
+                lobbies.forEach(lobby => addLobbyToTable(lobby));
+                logMessage(`Updated lobbies list with ${lobbies.length} lobbies.`);
+            } else {
+                logMessage("No available lobbies.");
+            }
+        }
+
+        // Create a lobby
+        function createLobby(wallet, targetScore, tokenType, betAmount) {
+            socket.send(JSON.stringify({
+                action: "create_lobby",
+                wallet: wallet,
+                target_score: targetScore,
+                token_type: tokenType,
+                bet_amount: betAmount
+            }));
+            logMessage(`Lobby creation request sent with wallet=${wallet}, target_score=${targetScore}, token_type=${tokenType}, bet_amount=${betAmount}`);
+        }
+
+        // Join a lobby
+        function joinLobby(lobbyId, tokenType) {
+            const wallet = prompt("Enter your wallet address:");
+            if (!wallet) {
+                alert("Wallet address is required to join a lobby.");
+                return;
+            }
+
+            socket.send(JSON.stringify({
+                action: "join_lobby",
+                lobby_id: lobbyId,
+                wallet: wallet,
+                token_type: tokenType
+            }));
+
+            logMessage(`Join lobby request sent for lobby_id=${lobbyId}, wallet=${wallet}, token_type=${tokenType}.`);
+        }
+
+        // Roll Dice
+        function rollDice() {
+            if (!isGameStarted) {
+                logMessage("Game has not started yet.");
+                return;
+            }
+            if (currentLobbyId) {
+                socket.send(JSON.stringify({
+                    action: "roll_dice",
+                    lobby_id: currentLobbyId
+                }));
+                logMessage("Roll dice request sent.");
+            } else {
+                logMessage("You must be in a lobby to roll the dice.");
+            }
+        }
+
+
+        // WebSocket handlers
+        socket.onopen = () => {
+            logMessage("WebSocket connection established.");
+            socket.send(JSON.stringify({ action: "list_lobbies" }));
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch (data.action) {
+                case "lobby_list":
+                    updateLobbiesList(data.lobbies);
+                    break;
+                case "lobby_created":
+                    currentLobbyId = data.lobby_id;
+                    logMessage(`Lobby created with ID: ${currentLobbyId}`);
+                    socket.send(JSON.stringify({ action: "list_lobbies" }));
+                    break;
+                case "game_start":
+                    isGameStarted = true;
+                    document.querySelector("#roll-dice-btn").disabled = false;
+                    logMessage("Game started. Roll the dice!");
+                    break;
+                case "round_result":
+                    logMessage(`Round ${data.round}: Player1 rolled ${data.player1_roll}, Player2 rolled ${data.player2_roll}. Scores: Player1=${data.player1_score}, Player2=${data.player2_score}. Next turn: ${data.next_turn}`);
+                    if (data.game_over) {
+                        logMessage(`Game over! Winner: ${data.winner}`);
+                        document.querySelector("#roll-dice-btn").disabled = true;
+                        isGameStarted = false;
+                    }
+                    break;
+                case "error":
+                    logMessage(`Error: ${data.message}`);
+                    alert(`Error: ${data.message}`);
+                    break;
+                default:
+                    logMessage(`Unhandled action: ${data.action}`);
+            }
+        };
+        socket.onclose = () => {
+            logMessage("WebSocket connection closed.");
+            document.querySelector("#roll-dice-btn").disabled = true;
+            isGameStarted = false;
+        };
+
+        socket.onerror = (error) => logMessage(`WebSocket error: ${error.message}`);
+
+        // Button handlers
+        document.querySelector("#create-lobby-btn").addEventListener("click", () => {
+            const wallet = document.querySelector("#wallet").value.trim();
+            const targetScore = parseInt(document.querySelector("#target-score").value, 10);
+            const tokenType = document.querySelector("#token-type").value;
+            const betAmount = parseFloat(document.querySelector("#bet-amount").value);
+
+            if (!wallet) {
+                alert("Wallet address is required.");
+                return;
+            }
+            if (isNaN(targetScore) || targetScore < 15 || targetScore > 45) {
+                alert("Target score must be between 15 and 45.");
+                return;
+            }
+            if (isNaN(betAmount) || betAmount <= 0) {
+                alert("Bet amount must be greater than 0.");
+                return;
+            }
+
+            createLobby(wallet, targetScore, tokenType, betAmount);
+        });
+
+        document.querySelector("#roll-dice-btn").addEventListener("click", rollDice);
+    </script>
+</body>
+</html>

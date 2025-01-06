@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dice PvP Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            height: 200px;
+            overflow-y: auto;
+        }
+        #scores {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #ddd;
+        }
+        #available-lobbies {
+            margin-top: 20px;
+        }
+        #available-lobbies table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        #available-lobbies th, #available-lobbies td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        #available-lobbies th {
+            background-color: #ddd;
+        }
+        .join-btn, .delete-btn {
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+        }
+        #game-info {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #eef;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dice PvP Game</h1>
+
+    <!-- Кнопки -->
+    <button id="create-lobby-btn">Create Lobby</button>
+    <button id="join-lobby-btn">Join Lobby</button>
+    <button id="roll-dice-btn" disabled>Roll Dice</button>
+    <button id="end-game-btn" style="display: none;">End Game</button>
+
+    <!-- Информация об игре -->
+    <div id="game-info" style="display: none;">
+        <h2>Game Information:</h2>
+        <p><strong>Lobby ID:</strong> <span id="game-lobby-id"></span></p>
+        <p><strong>Token Type:</strong> <span id="game-token-type"></span></p>
+        <p><strong>Bet Amount:</strong> <span id="game-bet-amount"></span></p>
+    </div>
+    
+    <!-- Логи -->
+    <div id="log"></div>
+    
+    <!-- Таблица доступных лобби -->
+    <div id="available-lobbies">
+        <h2>Available Lobbies:</h2>
+        <table id="lobbies-table">
+            <thead>
+                <tr>
+                    <th>Lobby ID</th>
+                    <th>Creator Name</th>
+                    <th>Target Score</th>
+                    <th>Token Type</th>
+                    <th>Bet Amount</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Динамически добавляемые лобби -->
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Таблица результатов по раундам и победитель -->
+    <div id="scores">
+        <h2>Scores:</h2>
+        <table id="scores-table">
+            <thead>
+                <tr>
+                    <th>Round</th>
+                    <th>Player1</th>
+                    <th>Player2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Round results will be added here -->
+            </tbody>
+        </table>
+        <h3 id="winner"></h3>
+    </div>
+    
+    <script>
+        // Подключение к WebSocket-серверу (адрес адаптируйте под ваши условия)
+        const socket = new WebSocket("ws://localhost:8080/ws/dice");
+
+        // Текущее состояние
+        let currentLobbyId = null; 
+        let currentTurn = ""; 
+        let playerId = "";       // "player1" или "player2"
+        let playerName = "";    
+        let roundNumber = 0; 
+        let ownedLobbyIds = new Set(); 
+        let userWallet = ""; 
+
+        // DOM-элементы
+        const gameInfoDiv = document.querySelector("#game-info");
+        const gameLobbyIdSpan = document.querySelector("#game-lobby-id");
+        const gameTokenTypeSpan = document.querySelector("#game-token-type");
+        const gameBetAmountSpan = document.querySelector("#game-bet-amount");
+
+        // Логирование
+        function logMessage(message) {
+            const logDiv = document.querySelector("#log");
+            const newMessage = document.createElement("p");
+            newMessage.textContent = message;
+            logDiv.appendChild(newMessage);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Добавляет результат раунда в таблицу
+        function addRoundResult(round, player1Score, player2Score) {
+            const tbody = document.querySelector("#scores-table tbody");
+            const newRow = document.createElement("tr");
+
+            const roundCell = document.createElement("td");
+            roundCell.textContent = `Round ${round}`;
+
+            const player1Cell = document.createElement("td");
+            player1Cell.textContent = player1Score;
+
+            const player2Cell = document.createElement("td");
+            player2Cell.textContent = player2Score;
+
+            newRow.appendChild(roundCell);
+            newRow.appendChild(player1Cell);
+            newRow.appendChild(player2Cell);
+
+            tbody.appendChild(newRow);
+        }
+
+        // Отображает победителя
+        function setWinner(winner) {
+            const winnerElement = document.querySelector("#winner");
+            winnerElement.textContent = `Winner: ${winner}`;
+        }
+
+        // Добавляет лобби в таблицу "Available Lobbies"
+        function addLobbyToTable(lobby) {
+            const tbody = document.querySelector("#lobbies-table tbody");
+            const newRow = document.createElement("tr");
+
+            // Столбец Lobby ID
+            const lobbyIdCell = document.createElement("td");
+            lobbyIdCell.textContent = lobby.lobby_id;
+
+            // Имя создателя
+            const creatorNameCell = document.createElement("td");
+            creatorNameCell.textContent = lobby.creator_name || "Unknown";
+
+            // Целевое количество очков
+            const targetScoreCell = document.createElement("td");
+            targetScoreCell.textContent = lobby.target_score !== undefined 
+                ? lobby.target_score 
+                : "N/A";
+
+            // Тип токена
+            const tokenTypeCell = document.createElement("td");
+            tokenTypeCell.textContent = lobby.token_type || "N/A";
+
+            // Ставка
+            const betAmountCell = document.createElement("td");
+            betAmountCell.textContent = lobby.bet_amount !== undefined
+                ? parseFloat(lobby.bet_amount).toFixed(2)
+                : "0.00";
+
+            // Кнопка (Join/Delete)
+            const actionCell = document.createElement("td");
+            if (ownedLobbyIds.has(lobby.lobby_id)) {
+                // Кнопка "Delete" только для создателя
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete-btn";
+                deleteButton.onclick = () => deleteLobby(lobby.lobby_id);
+                actionCell.appendChild(deleteButton);
+            } else {
+                // Кнопка "Join" для чужих лобби
+                const joinButton = document.createElement("button");
+                joinButton.textContent = "Join";
+                joinButton.className = "join-btn";
+                joinButton.onclick = () => joinLobby(lobby.lobby_id);
+                actionCell.appendChild(joinButton);
+            }
+            
+            newRow.appendChild(lobbyIdCell);
+            newRow.appendChild(creatorNameCell);
+            newRow.appendChild(targetScoreCell);
+            newRow.appendChild(tokenTypeCell);
+            newRow.appendChild(betAmountCell);
+            newRow.appendChild(actionCell);
+            tbody.appendChild(newRow);
+        }
+
+        // Очистить список лобби
+        function clearLobbiesTable() {
+            const tbody = document.querySelector("#lobbies-table tbody");
+            tbody.innerHTML = "";
+        }
+
+        // Обновить список доступных лобби
+        function updateLobbiesList(lobbies) {
+            clearLobbiesTable();
+            lobbies.forEach(lobby => {
+                addLobbyToTable(lobby);
+            });
+        }
+
+        // Отправка JSON-сообщения по WebSocket
+        function sendMessage(data) {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(data));
+            } else {
+                alert("WebSocket connection is not established yet.");
+                logMessage("WebSocket connection is not ready.");
+            }
+        }
+
+        // Активация/деактивация кнопки "Roll Dice"
+        // Кнопка активна, только если:
+        //   - Текущий ход (currentTurn) равен playerId (кто вы)
+        //   - currentLobbyId не пуст
+        function updateRollDiceButton() {
+            const rollDiceBtn = document.querySelector("#roll-dice-btn");
+            const isPlayerTurn = currentTurn === playerId; 
+            const isInLobby = !!currentLobbyId;
+            rollDiceBtn.disabled = !(isPlayerTurn && isInLobby);
+            logMessage(
+              `Roll Dice Button updated. Turn: ${currentTurn}, Player: ${playerId}, Enabled: ${!rollDiceBtn.disabled}`
+            );
+        }
+
+        // Обработка входящих сообщений от WebSocket-сервера
+        socket.onopen = () => {
+            logMessage("WebSocket connection established.");
+            // Запрос списка лобби
+            sendMessage({ action: "list_lobbies" });
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            
+            switch (data.action) {
+                case "lobby_created":
+                    // Создатель лобби становится "player1"
+                    currentLobbyId = data.lobby_id;
+                    playerId = "player1";  
+                    ownedLobbyIds.add(currentLobbyId); 
+                    
+                    logMessage(`Lobby created. Lobby ID: ${currentLobbyId}`);
+                    alert(`Lobby created. Share this Lobby ID with your opponent: ${currentLobbyId}`);
+                    
+                    // Отобразим информацию об игре
+                    gameInfoDiv.style.display = "block";
+                    gameLobbyIdSpan.textContent = currentLobbyId;
+                    gameTokenTypeSpan.textContent = data.token_type || "N/A";
+                    gameBetAmountSpan.textContent = data.bet_amount
+                        ? parseFloat(data.bet_amount).toFixed(2)
+                        : "0.00";
+
+                    // Обновим список лобби (чтобы увидеть свежее лобби в списке)
+                    sendMessage({ action: "list_lobbies" });
+                    updateRollDiceButton();
+                    break;
+
+                case "joined_lobby":
+                    if (data.lobby_id) {
+                        currentLobbyId = data.lobby_id;
+                    }
+                    logMessage("You joined the lobby. Waiting for game start event...");
+                    updateRollDiceButton();
+                    break;
+
+                case "game_start":
+                    // **Важный момент**: сервер должен присылать "player_id"
+                    // См. комментарии выше — иначе мы не узнаем, кто мы: player1 или player2
+                    currentTurn = data.current_turn; 
+                    playerId = data.player_id;       // Должно прийти "player1" или "player2"
+                    playerName = data.player_name; 
+
+                    currentLobbyId = data.lobby_id;
+                    logMessage(`${data.message} You are: ${playerName} (ID: ${playerId})`);
+
+                    // Отобразим информацию об игре
+                    gameInfoDiv.style.display = "block";
+                    gameLobbyIdSpan.textContent = currentLobbyId;
+                    gameTokenTypeSpan.textContent = data.token_type;
+                    gameBetAmountSpan.textContent = parseFloat(data.bet_amount).toFixed(2);
+
+                    // Кнопку "End Game" показываем только участникам
+                    if (playerId === "player1" || playerId === "player2") {
+                        document.querySelector("#end-game-btn").style.display = "inline-block";
+                    }
+                    updateRollDiceButton();
+                    break;
+
+                case "partial_round_result":
+                    logMessage(
+                      `Player ${data.player_name} rolled: ${data.roll1} and ${data.roll2} (Total: ${data.total_roll})`
+                    );
+                    addRoundResult(data.round, data.player1_score, data.player2_score);
+
+                    // Сервер может прислать текущий ход вместе с этим сообщением
+                    if (data.current_turn) {
+                        currentTurn = data.current_turn;
+                    }
+                    updateRollDiceButton();
+                    break;
+
+                case "turn_change":
+                    // Смена хода
+                    currentTurn = data.current_turn;
+                    logMessage(`Turn changed. Now it's ${currentTurn}'s turn.`);
+                    updateRollDiceButton();
+                    break;
+
+                case "game_terminated":
+                    // Если сервер присылает winner_name
+                    if (data.winner_name) {
+                        logMessage(`Game terminated! Winner: ${data.winner_name}`);
+                        alert(`Game terminated! Winner: ${data.winner_name}`);
+                        setWinner(data.winner_name);
+                    } else {
+                        // Если нет — используется "winner"
+                        logMessage(`Game terminated! Winner: ${data.winner}`);
+                        alert(`Game terminated! Winner: ${data.winner}`);
+                        setWinner(data.winner);
+                    }
+                    
+                    // Сбрасываем состояние
+                    currentLobbyId = null;
+                    playerId = "";
+                    currentTurn = "";
+                    roundNumber = 0;
+                    gameInfoDiv.style.display = "none";
+                    
+                    // Очищаем таблицу очков
+                    document.querySelector("#scores-table tbody").innerHTML = "";
+                    document.querySelector("#end-game-btn").style.display = "none";
+
+                    updateRollDiceButton();
+                    break;
+
+                case "game_over":
+                    if (data.winner_name) {
+                        logMessage(`Game Over! Winner: ${data.winner_name}`);
+                        alert(`Game Over! Winner: ${data.winner_name}`);
+                        setWinner(data.winner_name);
+                    } else {
+                        logMessage(`Game Over! Winner: ${data.winner}`);
+                        alert(`Game Over! Winner: ${data.winner}`);
+                        setWinner(data.winner);
+                    }
+                    
+                    // Сброс
+                    currentLobbyId = null;
+                    playerId = "";
+                    currentTurn = "";
+                    roundNumber = 0; 
+                    gameInfoDiv.style.display = "none";
+
+                    // Очищаем таблицу очков
+                    document.querySelector("#scores-table tbody").innerHTML = "";
+                    document.querySelector("#end-game-btn").style.display = "none";
+
+                    updateRollDiceButton();
+                    break;
+
+                case "error":
+                    logMessage(`Error: ${data.message}`);
+                    alert(`Error: ${data.message}`);
+                    break;
+
+                case "lobby_list":
+                    // Обновим доступные лобби
+                    updateLobbiesList(data.lobbies);
+                    break;
+
+                case "lobby_deleted":
+                    const deletedLobbyId = data.lobby_id;
+                    ownedLobbyIds.delete(deletedLobbyId);
+                    logMessage(`Lobby deleted: ${deletedLobbyId}`);
+                    
+                    if (currentLobbyId === deletedLobbyId) {
+                        currentLobbyId = null;
+                        playerId = "";
+                        currentTurn = "";
+                        gameInfoDiv.style.display = "none";
+                        document.querySelector("#scores-table tbody").innerHTML = "";
+                        setWinner("");
+                        document.querySelector("#end-game-btn").style.display = "none";
+                        updateRollDiceButton();
+                        alert(`Lobby ${deletedLobbyId} has been deleted.`);
+                    }
+                    // Запросим обновлённый список лобби
+                    sendMessage({ action: "list_lobbies" });
+                    break;
+
+                default:
+                    logMessage(`Unknown action received: ${JSON.stringify(data)}`);
+            }
+        };
+
+        // Закрытие сокета
+        socket.onclose = () => {
+            logMessage("WebSocket connection closed.");
+            alert("WebSocket connection closed.");
+        };
+
+        // Ошибка сокета
+        socket.onerror = (error) => {
+            logMessage(`WebSocket error: ${error.message}`);
+            alert(`WebSocket error: ${error.message}`);
+        };
+
+        // ============ ФУНКЦИИ ДЕЙСТВИЙ ПОЛЬЗОВАТЕЛЯ ============
+
+        // Создание лобби
+        function createLobby(targetScore, tokenType, betAmount) {
+            userWallet = prompt("Enter your wallet address:");
+            if (!userWallet) {
+                alert("Wallet address is required to create a lobby.");
+                logMessage("Lobby creation cancelled due to missing wallet address.");
+                return;
+            }
+
+            const firstName = prompt("Enter your first name:");
+            
+            sendMessage({
+                action: "create_lobby",
+                target_score: targetScore,
+                token_type: tokenType,
+                bet_amount: betAmount,
+                wallet: userWallet,
+                first_name: firstName || "Player"
+            });
+            logMessage("Lobby creation request sent.");
+        }
+
+        // Присоединение к лобби
+        function joinLobby(lobbyId) {
+            userWallet = prompt("Enter your wallet address:");
+            if (!userWallet) {
+                alert("Wallet address is required to join a lobby.");
+                logMessage("Join lobby cancelled due to missing wallet address.");
+                return;
+            }
+
+            const firstName = prompt("Enter your first name:");
+
+            sendMessage({
+                action: "join_lobby",
+                lobby_id: lobbyId,
+                wallet: userWallet,
+                first_name: firstName || "Player"
+            });
+            logMessage("Join lobby request sent.");
+        }
+
+        // Бросок кубиков
+        function rollDice() {
+            if (!currentLobbyId) {
+                alert("You must join or create a lobby first!");
+                logMessage("You must join or create a lobby first!");
+                return;
+            }
+            sendMessage({
+                action: "roll_dice",
+                lobby_id: currentLobbyId
+            });
+            logMessage("Roll dice request sent.");
+        }
+
+        // Удаление лобби (только для создателя)
+        function deleteLobby(lobbyId) {
+            if (!confirm(`Are you sure you want to delete Lobby ${lobbyId}?`)) {
+                logMessage(`Deletion of Lobby ${lobbyId} cancelled by user.`);
+                return;
+            }
+            sendMessage({
+                action: "delete_lobby",
+                lobby_id: lobbyId
+            });
+            logMessage(`Delete lobby request sent for Lobby ${lobbyId}.`);
+        }
+        
+        // Досрочное завершение игры
+        document.querySelector("#end-game-btn").addEventListener("click", () => {
+            if (!currentLobbyId) {
+                alert("No active game to end.");
+                return;
+            }
+
+            const winner = prompt("Who should be the winner? Enter 'player1' or 'player2':");
+            if (winner !== "player1" && winner !== "player2") {
+                alert("Invalid winner. Please enter 'player1' or 'player2'.");
+                logMessage("Invalid winner input for end game.");
+                return;
+            }
+            sendMessage({
+                action: "terminate_game",
+                lobby_id: currentLobbyId,
+                winner: winner
+            });
+            logMessage(`End game request sent. Winner: ${winner}`);
+        });
+
+        // ============ ОБРАБОТЧИКИ КНОПОК (Create / Join / Roll) ============
+
+        document.querySelector("#create-lobby-btn").addEventListener("click", () => {
+            const targetScoreInput = prompt("Enter the target score (e.g., 25):");
+            if (!targetScoreInput) {
+                alert("Lobby creation cancelled.");
+                logMessage("Lobby creation cancelled.");
+                return;
+            }
+            const parsedScore = parseInt(targetScoreInput, 10);
+            if (isNaN(parsedScore) || parsedScore < 15 || parsedScore > 45) {
+                alert("Invalid target score. Please enter a number between 15 and 45.");
+                logMessage("Invalid target score entered.");
+                return;
+            }
+
+            const tokenType = prompt("Enter the token type (ton_balance, m5_balance, dfc_balance):");
+            const validTokenTypes = ["ton_balance", "m5_balance", "dfc_balance"];
+            if (!tokenType || !validTokenTypes.includes(tokenType)) {
+                alert("Invalid token type. Please enter one of the following: ton_balance, m5_balance, dfc_balance.");
+                logMessage("Invalid token type entered.");
+                return;
+            }
+
+            const betAmountInput = prompt("Enter the bet amount (e.g., 10.5):");
+            if (!betAmountInput) {
+                alert("Lobby creation cancelled.");
+                logMessage("Lobby creation cancelled.");
+                return;
+            }
+            const parsedBetAmount = parseFloat(betAmountInput);
+            if (isNaN(parsedBetAmount) || parsedBetAmount <= 0) {
+                alert("Invalid bet amount. Please enter a positive number.");
+                logMessage("Invalid bet amount entered.");
+                return;
+            }
+
+            createLobby(parsedScore, tokenType, parsedBetAmount);
+        });
+
+        document.querySelector("#join-lobby-btn").addEventListener("click", () => {
+            const lobbyId = prompt("Enter the Lobby ID:");
+            if (lobbyId) {
+                joinLobby(lobbyId);
+            } else {
+                alert("Lobby ID cannot be empty.");
+                logMessage("Empty Lobby ID entered.");
+            }
+        });
+
+        document.querySelector("#roll-dice-btn").addEventListener("click", rollDice);
+    </script>
+</body>
+</html>
