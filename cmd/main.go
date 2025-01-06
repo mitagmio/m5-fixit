@@ -41,6 +41,8 @@ import (
 	echoSwagger "github.com/swaggo/echo-swagger"
 
 	_ "github.com/Peranum/tg-dice/docs" // подключение документации Swagger
+
+	custommiddleware "github.com/Peranum/tg-dice/internal/middleware"
 )
 
 // @title TG-Dice API
@@ -57,6 +59,10 @@ func main() {
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")
 	redisPassword := os.Getenv("REDIS_PASSWORD")
+	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if botToken == "" {
+		log.Fatalf("TELEGRAM_BOT_TOKEN не задан!")
+	}
 
 	if mongoURI == "" || dbName == "" || port == "" || redisHost == "" || redisPort == "" || redisPassword == "" {
 		log.Fatalf("Не все переменные окружения заданы!")
@@ -75,6 +81,11 @@ func main() {
 
 	// Инициализация Redis
 	redis.InitRedis(redisHost, redisPort, redisPassword)
+
+	// Создаем конфигурацию для middleware
+	telegramAuthConfig := custommiddleware.TelegramAuthConfig{
+		BotToken: botToken,
+	}
 
 	// Репозитории и сервисы для пользователей
 	userRepo := userRepositories.NewUserRepository(db)
@@ -112,10 +123,14 @@ func main() {
 	// Инициализация Echo
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://m5dice.com", "https://www.m5dice.com","https://webassist.ngrok.dev","https://www.webassist.ngrok.dev","http://38.180.244.162"},
+		AllowOrigins: []string{"https://m5dice.com", "https://www.m5dice.com", "https://webassist.ngrok.dev", "https://www.webassist.ngrok.dev", "http://38.180.244.162"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete},
 		AllowHeaders: []string{"Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"},
 	}))
+
+	// Добавляем Telegram Auth middleware
+	e.Use(custommiddleware.TelegramAuthMiddleware(telegramAuthConfig))
+
 	// Swagger
 	e.Static("/docs", "./docs")
 	e.GET("/swagger/*", echoSwagger.WrapHandler, middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
@@ -198,5 +213,5 @@ func main() {
 	if err := e.Start(":" + port); err != nil {
 		log.Fatalf("Ошибка при запуске сервера: %v", err)
 	}
-	
+
 }
