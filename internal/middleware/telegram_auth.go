@@ -27,12 +27,15 @@ func TelegramAuthMiddleware(config TelegramAuthConfig) echo.MiddlewareFunc {
 
 			// Получаем query параметры
 			query := c.QueryString()
+			if queryParam := c.QueryParam("query"); queryParam != "" {
+				query = queryParam
+			}
+
 			if query == "" {
 				return c.JSON(http.StatusUnauthorized, map[string]string{
 					"error": "Missing Telegram WebApp authentication data",
 				})
 			}
-
 			// Проверяем подпись
 			if !checkTelegramAuth(query, config.BotToken) {
 				return c.JSON(http.StatusUnauthorized, map[string]string{

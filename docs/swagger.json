@@ -1275,6 +1275,70 @@
                 }
             }
         },
+        "/test": {
+            "get": {
+                "description": "Generate test query string for Telegram WebApp authentication",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "test"
+                ],
+                "summary": "Generate test query",
+                "responses": {
+                    "200": {
+                        "description": "Generated query string",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/test_post": {
+            "post": {
+                "description": "Test endpoint for validating Telegram WebApp authentication",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "test"
+                ],
+                "summary": "Test query validation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Telegram WebApp authentication data",
+                        "name": "query",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Query validation passed",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Retrieve a list of users with optional pagination",

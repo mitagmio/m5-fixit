@@ -43,6 +43,7 @@ import (
 	_ "github.com/Peranum/tg-dice/docs" // подключение документации Swagger
 
 	custommiddleware "github.com/Peranum/tg-dice/internal/middleware"
+	testHandlers "github.com/Peranum/tg-dice/internal/test/handlers"
 )
 
 // @title TG-Dice API
@@ -52,6 +53,7 @@ import (
 // @BasePath /
 // @schemes https
 func main() {
+
 	// Получение значений из переменных окружения
 	mongoURI := os.Getenv("MONGO_URI")
 	dbName := os.Getenv("DB_NAME")
@@ -123,7 +125,7 @@ func main() {
 	// Инициализация Echo
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://m5dice.com", "https://www.m5dice.com", "https://webassist.ngrok.dev", "https://www.webassist.ngrok.dev", "http://38.180.244.162"},
+		AllowOrigins: []string{"https://m5dice.com", "https://www.m5dice.com", "https://webassist.ngrok.dev", "https://www.webassist.ngrok.dev", "http://38.180.244.162", "http://85.235.150.22"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete},
 		AllowHeaders: []string{"Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"},
 	}))
@@ -194,6 +196,14 @@ func main() {
 	e.GET("/promocodes/active", promoCodeController.ListActivePromoCodes)
 	e.GET("/promocodes/:code", promoCodeController.GetPromoCode)
 	e.POST("/promocodes/expire", promoCodeController.ExpirePromoCodes)
+
+	// Инициализация тестовых обработчиков
+	testHandler := testHandlers.NewTestHandler(botToken)
+
+	// Регистрация тестовых маршрутов
+	e.GET("/test", testHandler.GenerateTestQuery)
+	e.POST("/test_post", testHandler.ValidateTestQuery)
+
 	// Инициализация сервиса PvP игр
 	pvpService := presentation.NewDicePVPGameService(userRepo, historyService)
 

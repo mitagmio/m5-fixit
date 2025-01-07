@@ -1238,6 +1238,48 @@ paths:
       summary: Записать информацию о сыгранной игре
       tags:
       - Slots
+  /test:
+    get:
+      description: Generate test query string for Telegram WebApp authentication
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Generated query string
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate test query
+      tags:
+      - test
+  /test_post:
+    post:
+      description: Test endpoint for validating Telegram WebApp authentication
+      parameters:
+      - description: Telegram WebApp authentication data
+        in: query
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Query validation passed
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Test query validation
+      tags:
+      - test
   /users:
     get:
       description: Retrieve a list of users with optional pagination
