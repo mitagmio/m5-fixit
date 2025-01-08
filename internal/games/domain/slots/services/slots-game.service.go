@@ -295,6 +295,21 @@ func (service *SlotGameService) PlaySlot(ctx context.Context, wallet string, ton
 		}
 	}
 
+	// Определяем тип ставки
+	betType := "ton"
+	if cubes > 0 {
+		betType = "cubes"
+	}
+
+	// Преобразуем комбинацию в строку
+	resultStr := fmt.Sprintf("%v", combination)
+
+	// Записываем игру
+	err = service.SlotRepository.RecordGame(ctx, wallet, bet, betType, resultStr, winnings)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to record game: %v", err)
+	}
+
 	return combination, winnings, nil
 }
 
@@ -384,9 +399,9 @@ func (service *SlotGameService) addTonWinnings(ctx context.Context, wallet strin
 }
 
 // RecordGame - Метод для записи игры
-func (service *SlotGameService) RecordGame(ctx context.Context, wallet string, bet float64, result string, winAmount float64) error {
+func (service *SlotGameService) RecordGame(ctx context.Context, wallet string, bet float64, betType string, result string, winAmount float64) error {
 	// Используем метод репозитория для записи игры.
-	return service.SlotRepository.RecordGame(ctx, wallet, bet, result, winAmount)
+	return service.SlotRepository.RecordGame(ctx, wallet, bet, betType, result, winAmount)
 }
 
 // GetGamesByWallet - Получить все игры игрока по кошельку.

@@ -340,21 +340,6 @@ definitions:
         description: Выигрыш
         type: number
     type: object
-  slots.RecordGameRequest:
-    properties:
-      bet:
-        description: Ставка игрока
-        type: number
-      result:
-        description: Результат игры
-        type: string
-      wallet:
-        description: Кошелек игрока
-        type: string
-      win_amount:
-        description: Выигрыш игрока
-        type: number
-    type: object
   slots.SlotsBalanceResponse:
     properties:
       cubes:
@@ -1206,36 +1191,6 @@ paths:
           schema:
             $ref: '#/definitions/slots.ErrorResponse'
       summary: Запуск игры в слоты
-      tags:
-      - Slots
-  /slots/record:
-    post:
-      consumes:
-      - application/json
-      description: Сохранить информацию о сыгранной игре в базе данных
-      parameters:
-      - description: Данные игры
-        in: body
-        name: recordGameRequest
-        required: true
-        schema:
-          $ref: '#/definitions/slots.RecordGameRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Игра успешно записана
-          schema:
-            $ref: '#/definitions/slots.SuccessResponse'
-        "400":
-          description: Ошибка с некорректной ставкой или выигрышем
-          schema:
-            $ref: '#/definitions/slots.ErrorResponse'
-        "500":
-          description: Ошибка сервера при записи игры
-          schema:
-            $ref: '#/definitions/slots.ErrorResponse'
-      summary: Записать информацию о сыгранной игре
       tags:
       - Slots
   /test:

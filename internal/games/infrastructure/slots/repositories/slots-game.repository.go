@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/Peranum/tg-dice/internal/games/infrastructure/slots/entities"
@@ -12,29 +13,31 @@ import (
 
 // SlotGameRepository - Репозиторий для работы с игрой.
 type SlotGameRepository struct {
-	Collection *mongo.Collection
+	collection *mongo.Collection
 }
 
 // NewSlotGameRepository - Конструктор репозитория для SlotGame.
-func NewSlotGameRepository(client *mongo.Client, dbName, collectionName string) *SlotGameRepository {
-	collection := client.Database(dbName).Collection(collectionName)
+func NewSlotGameRepository(db *mongo.Database) *SlotGameRepository {
 	return &SlotGameRepository{
-		Collection: collection,
+		collection: db.Collection("slot_games"),
 	}
 }
 
 // RecordGame - Записать информацию о сыгранной игре в MongoDB.
-func (repo *SlotGameRepository) RecordGame(ctx context.Context, wallet string, bet float64, result string, winAmount float64) error {
+func (repo *SlotGameRepository) RecordGame(ctx context.Context, wallet string, bet float64, betType string, result string, winAmount float64) error {
 	game := entities.SlotGame{
 		Wallet:    wallet,
 		Bet:       bet,
+		BetType:   betType,
 		Result:    result,
 		WinAmount: winAmount,
 		PlayedAt:  time.Now(),
 	}
 
-	_, err := repo.Collection.InsertOne(ctx, game)
+	res, err := repo.collection.InsertOne(ctx, game)
+	log.Printf("Результат записи игры в БД: %v", res)
 	if err != nil {
+		log.Printf("Ошибка при сохранении записи игры в БД: %v", err)
 		return err
 	}
 
@@ -48,7 +51,7 @@ func (repo *SlotGameRepository) GetGamesByWallet(ctx context.Context, wallet str
 	filter := bson.M{"wallet": wallet}
 	options := options.Find().SetLimit(limit)
 
-	cursor, err := repo.Collection.Find(ctx, filter, options)
+	cursor, err := repo.collection.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +79,7 @@ func (repo *SlotGameRepository) GetRecentGames(ctx context.Context, wallet strin
 	filter := bson.M{"wallet": wallet}
 	options := options.Find().SetLimit(limit).SetSort(bson.M{"played_at": -1}) // Сортировка по времени (от новых к старым)
 
-	cursor, err := repo.Collection.Find(ctx, filter, options)
+	cursor, err := repo.collection.Find(ctx, filter, options)
 	if err != nil {
 		return nil, err
 	}

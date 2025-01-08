@@ -1121,52 +1121,6 @@
                 }
             }
         },
-        "/slots/record": {
-            "post": {
-                "description": "Сохранить информацию о сыгранной игре в базе данных",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Slots"
-                ],
-                "summary": "Записать информацию о сыгранной игре",
-                "parameters": [
-                    {
-                        "description": "Данные игры",
-                        "name": "recordGameRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/slots.RecordGameRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Игра успешно записана",
-                        "schema": {
-                            "$ref": "#/definitions/slots.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка с некорректной ставкой или выигрышем",
-                        "schema": {
-                            "$ref": "#/definitions/slots.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Ошибка сервера при записи игры",
-                        "schema": {
-                            "$ref": "#/definitions/slots.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/slots/{wallet}/games": {
             "get": {
                 "description": "Получить все игры, сыгранные пользователем по его кошельку",
@@ -2786,27 +2740,6 @@
                 },
                 "win_amount": {
                     "description": "Выигрыш",
-                    "type": "number"
-                }
-            }
-        },
-        "slots.RecordGameRequest": {
-            "type": "object",
-            "properties": {
-                "bet": {
-                    "description": "Ставка игрока",
-                    "type": "number"
-                },
-                "result": {
-                    "description": "Результат игры",
-                    "type": "string"
-                },
-                "wallet": {
-                    "description": "Кошелек игрока",
-                    "type": "string"
-                },
-                "win_amount": {
-                    "description": "Выигрыш игрока",
                     "type": "number"
                 }
             }

@@ -81,37 +81,6 @@ type RecordGameRequest struct {
 	WinAmount float64 `json:"win_amount"` // Выигрыш игрока
 }
 
-// RecordGame - Контроллер для записи информации о сыгранной игре.
-// @Summary Записать информацию о сыгранной игре
-// @Description Сохранить информацию о сыгранной игре в базе данных
-// @Tags Slots
-// @Accept json
-// @Produce json
-// @Param recordGameRequest body RecordGameRequest true "Данные игры" // Параметры передаются через тело запроса
-// @Success 200 {object} SuccessResponse "Игра успешно записана"
-// @Failure 400 {object} ErrorResponse "Ошибка с некорректной ставкой или выигрышем"
-// @Failure 500 {object} ErrorResponse "Ошибка сервера при записи игры"
-// @Router /slots/record [post]
-func (controller *SlotGameController) RecordGame(c echo.Context) error {
-	var request RecordGameRequest
-
-	// Привязываем данные из тела запроса
-	if err := c.Bind(&request); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "invalid request data"})
-	}
-
-	// Вызов сервиса для записи игры
-	err := controller.SlotGameService.RecordGame(c.Request().Context(), request.Wallet, request.Bet, request.Result, request.WinAmount)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: fmt.Sprintf("failed to record game: %v", err)})
-	}
-
-	// Возвращаем успешный ответ
-	return c.JSON(http.StatusOK, SuccessResponse{
-		Status: "game recorded successfully",
-	})
-}
-
 // GetGamesByWallet - Контроллер для получения всех игр по кошельку.
 // @Summary Получить все игры по кошельку
 // @Description Получить все игры, сыгранные пользователем по его кошельку

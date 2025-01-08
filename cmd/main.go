@@ -112,7 +112,7 @@ func main() {
 
 	// Репозитории и сервисы для слотов
 	slotBalanceRepo := slotRepositories.NewSlotsBalanceRepository(db)
-	slotGameRepo := slotRepositories.NewSlotGameRepository(db.Client(), dbName, "slot_games")
+	slotGameRepo := slotRepositories.NewSlotGameRepository(db)
 	slotGameService := slotServices.NewSlotGameService(slotGameRepo, userRepo, slotBalanceRepo)
 	slotsBalanceService := slotServices.NewSlotsBalanceService(slotBalanceRepo)
 	slotGameController := slotControllers.NewSlotGameController(slotGameService, slotsBalanceService)
@@ -178,7 +178,6 @@ func main() {
 
 	// Роуты для слотов
 	e.POST("/slots/play", slotGameController.PlaySlot)
-	e.POST("/slots/record", slotGameController.RecordGame)
 	e.GET("/slots/:wallet/games", slotGameController.GetGamesByWallet)
 	e.GET("/slots/:wallet/recent-games", slotGameController.GetRecentGames)
 	e.POST("/slots/balance/initialize", slotGameController.InitializeBalance) // Инициализация баланса
