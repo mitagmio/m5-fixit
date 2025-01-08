@@ -24,9 +24,10 @@ func NewSlotGameRepository(db *mongo.Database) *SlotGameRepository {
 }
 
 // RecordGame - Записать информацию о сыгранной игре в MongoDB.
-func (repo *SlotGameRepository) RecordGame(ctx context.Context, wallet string, bet float64, betType string, result string, winAmount float64) error {
+func (repo *SlotGameRepository) RecordGame(ctx context.Context, wallet string, firstName string, bet float64, betType string, result string, winAmount float64) error {
 	game := entities.SlotGame{
 		Wallet:    wallet,
+		FirstName: firstName,
 		Bet:       bet,
 		BetType:   betType,
 		Result:    result,
