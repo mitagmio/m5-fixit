@@ -159,7 +159,9 @@ type SuccessResponse struct {
 // GameRecord - Структура для игры
 type GameRecord struct {
 	Wallet    string  `json:"wallet"`     // Кошелек игрока
+	FirstName string  `bson:"first_name"` // Имя игрока
 	Bet       float64 `json:"bet"`        // Ставка
+	BetType   string  `bson:"bet_type"`   // Тип ставки (ton или cubes)
 	Result    string  `json:"result"`     // Результат игры
 	WinAmount float64 `json:"win_amount"` // Выигрыш
 	Timestamp string  `json:"timestamp"`  // Время игры
