@@ -2680,6 +2680,14 @@ const docTemplate = `{
                     "description": "Ставка",
                     "type": "number"
                 },
+                "betType": {
+                    "description": "Тип ставки (ton или cubes)",
+                    "type": "string"
+                },
+                "firstName": {
+                    "description": "Имя игрока",
+                    "type": "string"
+                },
                 "result": {
                     "description": "Результат игры",
                     "type": "string"
