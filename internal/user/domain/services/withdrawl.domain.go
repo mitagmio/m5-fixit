@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/Peranum/tg-dice/internal/user/infrastructure/repositories"
 )
 
@@ -45,52 +46,51 @@ func (s *WithdrawalService) CreateWithdrawal(ctx context.Context, amount float64
 	} else {
 		tokenType = "ton_balance" // Default to ton_balance if jettonName is not provided
 	}
-	
-	maxLimits := map[string]float64{
-        "ton_balance": 10.0,
-        "m5_balance":  10.0,
-        "dfc_balance": 10.0,
-    }
 
-    // Check if the requested amount exceeds the maximum limit
-    if limit, exists := maxLimits[tokenType]; exists {
-        if amount > limit {
-            return fmt.Errorf("withdrawal amount exceeds the maximum limit of %.2f for %s", limit, tokenType)
-        }
-    } else {
-        return errors.New("invalid token type")
-    }
+	maxLimits := map[string]float64{
+		"ton_balance": 10.0,
+		"m5_balance":  10.0,
+		"dfc_balance": 10.0,
+	}
+
+	// Check if the requested amount exceeds the maximum limit
+	if limit, exists := maxLimits[tokenType]; exists {
+		if amount > limit {
+			return fmt.Errorf("withdrawal amount exceeds the maximum limit of %.2f for %s", limit, tokenType)
+		}
+	} else {
+		return errors.New("invalid token type")
+	}
 	// Check if the user has sufficient balance for the withdrawal
 	hasSufficientBalance, err := s.UserRepo.HasSufficientBalance(ctx, wallet, tokenType, amount)
-    if err != nil {
-        return fmt.Errorf("error checking balance: %v", err)
-    }
+	if err != nil {
+		return fmt.Errorf("error checking balance: %v", err)
+	}
 
-    if !hasSufficientBalance {
-        return errors.New("insufficient balance")
-    }
+	if !hasSufficientBalance {
+		return errors.New("insufficient balance")
+	}
 
-    // Deduct the amount from the user's balance
-    tokenUpdates := map[string]float64{
-        tokenType: -amount, // Deducting the amount
-    }
+	// Deduct the amount from the user's balance
+	tokenUpdates := map[string]float64{
+		tokenType: -amount, // Deducting the amount
+	}
 
-    err = s.UserRepo.AddTokens(ctx, wallet, tokenUpdates)
-    if err != nil {
-        return fmt.Errorf("error deducting tokens: %v", err)
-    }
+	err = s.UserRepo.AddTokens(ctx, wallet, tokenUpdates)
+	if err != nil {
+		return fmt.Errorf("error deducting tokens: %v", err)
+	}
 
-    // Create the withdrawal record, only include JettonName if it's provided
-    withdrawal := &repositories.Withdrawal{
-        Amount: amount,
-        Wallet: wallet,
-    }
-    if jettonName != nil {
-        withdrawal.JettonName = *jettonName
-    }
+	// Create the withdrawal record
+	withdrawal := repositories.NewWithdrawal(wallet, amount)
+	if jettonName != nil {
+		withdrawal.JettonName = *jettonName
+	} else {
+		withdrawal.JettonName = "ton"
+	}
 
-    // Create the withdrawal record
-    return s.Repo.CreateWithdrawal(ctx, withdrawal)
+	// Create the withdrawal record
+	return s.Repo.CreateWithdrawal(ctx, withdrawal)
 }
 
 // GetWithdrawal retrieves a withdrawal by its ID.

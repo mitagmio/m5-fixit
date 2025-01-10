@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,6 +16,8 @@ type Withdrawal struct {
 	Amount     float64            `bson:"amount" json:"amount"`
 	Wallet     string             `bson:"wallet" json:"wallet"`
 	JettonName string             `bson:"jetton_name,omitempty" json:"jetton_name,omitempty"`
+	Status     string             `bson:"status" json:"status"`
+	Timestamp  time.Time          `bson:"timestamp" json:"timestamp"`
 }
 
 // WithdrawalsRepository provides access to the withdrawals collection.
@@ -159,4 +162,27 @@ func (repo *WithdrawalsRepository) GetLast50WithdrawalsWithoutJetton(ctx context
 		withdrawals = append(withdrawals, withdrawal)
 	}
 	return withdrawals, nil
+}
+
+// Создадим константы для статусов
+const (
+	StatusCreating              = "CREATING"
+	StatusModerator             = "MODERATOR"
+	StatusWithdrawing           = "WITHDRAWING"
+	StatusWithdrawingAdmin      = "WITHDRAWING_ADMIN"
+	StatusWithdrawingNow        = "WITHDAWING_NOW"
+	StatusWithdrawingSuccess    = "WITHDRAWING_SUCCESS"
+	StatusWithdrawingError      = "WITHDRAWING_ERROR"
+	StatusWithdrawingErrorSeqno = "WITHDRAWING_ERROR_SEQNO"
+	StatusCancelAdmin           = "CANCEL_ADMIN"
+	StatusError                 = "ERROR"
+)
+
+func NewWithdrawal(wallet string, amount float64) *Withdrawal {
+	return &Withdrawal{
+		Wallet:    wallet,
+		Amount:    amount,
+		Status:    StatusCreating,
+		Timestamp: time.Now(),
+	}
 }
