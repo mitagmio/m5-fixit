@@ -17,7 +17,7 @@ type Withdrawal struct {
 	Wallet     string             `bson:"wallet" json:"wallet"`
 	JettonName string             `bson:"jetton_name,omitempty" json:"jetton_name,omitempty"`
 	Status     string             `bson:"status" json:"status"`
-	Timestamp  time.Time          `bson:"timestamp" json:"timestamp"`
+	Timestamp  int64              `bson:"timestamp" json:"timestamp"`
 }
 
 // WithdrawalsRepository provides access to the withdrawals collection.
@@ -183,6 +183,6 @@ func NewWithdrawal(wallet string, amount float64) *Withdrawal {
 		Wallet:    wallet,
 		Amount:    amount,
 		Status:    StatusCreating,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().Unix(),
 	}
 }
