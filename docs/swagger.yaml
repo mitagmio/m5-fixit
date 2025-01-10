@@ -1169,6 +1169,37 @@ paths:
       summary: Обновление баланса
       tags:
       - Slots
+  /slots/history:
+    get:
+      consumes:
+      - application/json
+      description: Получить список всех игр в слоты с ограничением по количеству
+      parameters:
+      - default: 50
+        description: Лимит количества игр
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список игр
+          schema:
+            items:
+              $ref: '#/definitions/slots.GameRecord'
+            type: array
+        "400":
+          description: Ошибка с некорректным лимитом
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+        "500":
+          description: Ошибка сервера при получении игр
+          schema:
+            $ref: '#/definitions/slots.ErrorResponse'
+      summary: Получить историю всех игр в слоты
+      tags:
+      - Slots
   /slots/play:
     post:
       consumes:

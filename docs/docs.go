@@ -1078,6 +1078,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/slots/history": {
+            "get": {
+                "description": "Получить список всех игр в слоты с ограничением по количеству",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Slots"
+                ],
+                "summary": "Получить историю всех игр в слоты",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Лимит количества игр",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список игр",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/slots.GameRecord"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка с некорректным лимитом",
+                        "schema": {
+                            "$ref": "#/definitions/slots.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка сервера при получении игр",
+                        "schema": {
+                            "$ref": "#/definitions/slots.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/slots/play": {
             "post": {
                 "description": "Выполнение игры в слоты с выбором ставки",
