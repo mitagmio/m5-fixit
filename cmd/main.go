@@ -180,6 +180,7 @@ func main() {
 	e.POST("/slots/play", slotGameController.PlaySlot)
 	e.GET("/slots/:wallet/games", slotGameController.GetGamesByWallet)
 	e.GET("/slots/:wallet/recent-games", slotGameController.GetRecentGames)
+	e.GET("/slots/history", slotGameController.GetHistory)
 	e.POST("/slots/balance/initialize", slotGameController.InitializeBalance) // Инициализация баланса
 	e.GET("/slots/balance", slotGameController.GetBalance)                    // Получение текущего баланса
 	// Роуты для управления токенами в слотах
