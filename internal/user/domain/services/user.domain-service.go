@@ -66,33 +66,6 @@ func (ds *UserDomainService) CreateUser(ctx context.Context, user *entities.User
 	return createdUser, nil
 }
 
-// UpdateUserTokens добавляет указанные токены пользователю по wallet
-func (ds *UserDomainService) UpdateUserTokens(ctx context.Context, wallet string, tonBalance, m5Balance, dfcBalance *float64) error {
-	// Формируем карту для обновления токенов
-	tokenUpdates := make(map[string]float64)
-
-	if tonBalance != nil {
-		tokenUpdates["ton_balance"] = *tonBalance
-	}
-	if m5Balance != nil {
-		tokenUpdates["m5_balance"] = *m5Balance
-	}
-	if dfcBalance != nil {
-		tokenUpdates["dfc_balance"] = *dfcBalance
-	}
-
-	// Вызов метода репозитория с картой токенов, теперь используя wallet
-	return ds.UserRepo.AddTokens(ctx, wallet, tokenUpdates)
-}
-
-func (ds *UserDomainService) AddCubes(ctx context.Context, wallet string, cubes int) error {
-	if cubes <= 0 {
-		return errors.New("number of cubes to add must be greater than zero")
-	}
-
-	return ds.UserRepo.AddCubes(ctx, wallet, cubes)
-}
-
 func (ds *UserDomainService) GetTokenBalance(ctx context.Context, wallet string, tokenType string) (float64, error) {
 	// Проверяем, передан ли валидный кошелек и токен
 	if wallet == "" {
