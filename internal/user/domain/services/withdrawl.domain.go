@@ -40,6 +40,8 @@ func (s *WithdrawalService) CreateWithdrawal(ctx context.Context, amount float64
 			tokenType = "m5_balance"
 		case "dfc":
 			tokenType = "dfc_balance"
+		case "ton":
+			tokenType = "ton_balance"
 		default:
 			tokenType = "ton_balance" // Default to ton_balance if jettonName is provided but not recognized
 		}
