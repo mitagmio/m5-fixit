@@ -1906,68 +1906,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{wallet}/cubes": {
-            "patch": {
-                "description": "Increment the number of cubes for a user by their wallet",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Add cubes to a user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User Wallet",
-                        "name": "wallet",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Number of cubes to add",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.AddCubesRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/users/{wallet}/points": {
             "get": {
                 "description": "Retrieve the points of a user by their wallet",
@@ -2139,68 +2077,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{wallet}/tokens": {
-            "patch": {
-                "description": "Update the balances of one or more tokens for a user by their wallet",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Update user token balances",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User Wallet",
-                        "name": "wallet",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Token balances to update (e.g., {\\",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controllers.UpdateTokensRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/users/{wallet}/withdrawals": {
             "get": {
                 "description": "Retrieve a list of withdrawals for a user by their wallet address",
@@ -2305,15 +2181,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controllers.AddCubesRequest": {
-            "type": "object",
-            "properties": {
-                "cubes_to_add": {
-                    "type": "integer",
-                    "example": 10
-                }
-            }
-        },
         "controllers.AddTokensToBotBalanceRequest": {
             "type": "object",
             "required": [
@@ -2410,20 +2277,6 @@ const docTemplate = `{
                 "token_type": {
                     "description": "Тип токена (например, ton_balance)",
                     "type": "string"
-                }
-            }
-        },
-        "controllers.UpdateTokensRequest": {
-            "type": "object",
-            "properties": {
-                "dfc_balance": {
-                    "type": "number"
-                },
-                "m5_balance": {
-                    "type": "number"
-                },
-                "ton_balance": {
-                    "type": "number"
                 }
             }
         },

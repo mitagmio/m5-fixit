@@ -1,11 +1,5 @@
 basePath: /
 definitions:
-  controllers.AddCubesRequest:
-    properties:
-      cubes_to_add:
-        example: 10
-        type: integer
-    type: object
   controllers.AddTokensToBotBalanceRequest:
     properties:
       amount:
@@ -76,15 +70,6 @@ definitions:
     required:
     - amount
     - token_type
-    type: object
-  controllers.UpdateTokensRequest:
-    properties:
-      dfc_balance:
-        type: number
-      m5_balance:
-        type: number
-      ton_balance:
-        type: number
     type: object
   controllers.Withdrawal:
     properties:
@@ -1413,47 +1398,6 @@ paths:
       summary: Get user balances
       tags:
       - users
-  /users/{wallet}/cubes:
-    patch:
-      consumes:
-      - application/json
-      description: Increment the number of cubes for a user by their wallet
-      parameters:
-      - description: User Wallet
-        in: path
-        name: wallet
-        required: true
-        type: string
-      - description: Number of cubes to add
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.AddCubesRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Add cubes to a user
-      tags:
-      - users
   /users/{wallet}/points:
     get:
       description: Retrieve the points of a user by their wallet
@@ -1566,47 +1510,6 @@ paths:
               type: string
             type: object
       summary: Get referral earnings by user wallet
-      tags:
-      - users
-  /users/{wallet}/tokens:
-    patch:
-      consumes:
-      - application/json
-      description: Update the balances of one or more tokens for a user by their wallet
-      parameters:
-      - description: User Wallet
-        in: path
-        name: wallet
-        required: true
-        type: string
-      - description: Token balances to update (e.g., {\
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/controllers.UpdateTokensRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Update user token balances
       tags:
       - users
   /users/{wallet}/withdrawals:
