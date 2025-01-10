@@ -241,6 +241,37 @@ func (ur *UserRepository) AddTokens(ctx context.Context, wallet string, tokenUpd
 	return nil
 }
 
+
+func (ur *UserRepository) AddCubes(ctx context.Context, wallet string, cubes int) error {
+	// Находим текущего пользователя по кошельку
+	var user odm_entities.UserEntity
+	err := ur.Collection.FindOne(ctx, bson.M{"wallet": wallet}).Decode(&user)
+	if err != nil {
+		return errors.New("user not found")
+	}
+
+	// Проверяем, чтобы итоговый баланс кубов не стал отрицательным
+	if user.Cubes+cubes < 0 {
+		return errors.New("cubes cannot go negative")
+	}
+
+	// Увеличиваем количество кубов
+	_, err = ur.Collection.UpdateOne(
+		ctx,
+		bson.M{"wallet": wallet},
+		bson.M{
+			"$inc": bson.M{
+				"cubes": cubes,
+			},
+			"$set": bson.M{
+				"updated_at": time.Now(),
+			},
+		},
+	)
+
+	return err
+}
+
 func (r *UserRepository) DoesUserExist(ctx context.Context, wallet string) (bool, error) {
 	var count int64
 	count, err := r.Collection.CountDocuments(ctx, bson.M{"wallet": wallet})
