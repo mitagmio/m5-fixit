@@ -125,7 +125,7 @@ func main() {
 	// Инициализация Echo
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://m5dice.com", "https://www.m5dice.com", "https://webassist.ngrok.dev", "https://www.webassist.ngrok.dev", "http://38.180.244.162", "http://85.235.150.22"},
+		AllowOrigins: []string{"http://127.0.0.1", "https://127.0.0.1", "http://localhost", "https://localhost", "https://m5dice.com", "https://www.m5dice.com", "https://webassist.ngrok.dev", "https://www.webassist.ngrok.dev", "http://38.180.244.162", "http://85.235.150.22"},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete},
 		AllowHeaders: []string{"Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"},
 	}))
