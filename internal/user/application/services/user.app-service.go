@@ -28,14 +28,6 @@ func (as *UserAppService) GetUser(ctx context.Context, id string) (*entities.Use
 	return as.DomainService.GetUserByID(ctx, id)
 }
 
-func (as *UserAppService) UpdateUserTokens(ctx context.Context, wallet string, tonBalance, m5Balance, dfcBalance *float64) error {
-	return as.DomainService.UpdateUserTokens(ctx, wallet, tonBalance, m5Balance, dfcBalance)
-}
-
-func (as *UserAppService) AddCubes(ctx context.Context, wallet string, cubes int) error {
-	return as.DomainService.AddCubes(ctx, wallet, cubes)
-}
-
 func (as *UserAppService) GetUserByWallet(ctx context.Context, wallet string) (*entities.User, error) {
 	return as.DomainService.GetUserByWallet(ctx, wallet)
 }
