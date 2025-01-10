@@ -159,8 +159,6 @@ func main() {
 	e.GET("/users/withdrawals/last-50-with-jetton", userController.GetLast50WithdrawalsWithJetton)
 	e.GET("/users/withdrawals/last-50-without-jetton", userController.GetLast50WithdrawalsWithoutJetton)
 	e.DELETE("/users/withdrawal/:id", userController.DeleteWithdrawal)
-	e.PATCH("/users/:wallet/tokens", userController.UpdateUserTokens) // Обновление баланса токенов
-	e.PATCH("/users/:wallet/cubes", userController.AddCubes)          // Добавление кубов
 	e.POST("/withdrawals", userController.CreateWithdrawal)
 
 	e.GET("/referrals/level", referralController.GetReferralsByLevelHandler)
