@@ -100,3 +100,30 @@ func (repo *SlotGameRepository) GetRecentGames(ctx context.Context, wallet strin
 
 	return games, nil
 }
+
+// GetHistory - Получить общую историю игр в слоты.
+func (repo *SlotGameRepository) GetHistory(ctx context.Context, limit int64) ([]entities.SlotGame, error) {
+    var games []entities.SlotGame
+
+    options := options.Find().SetLimit(limit).SetSort(bson.M{"played_at": -1})
+    
+    cursor, err := repo.collection.Find(ctx, bson.M{}, options)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    for cursor.Next(ctx) {
+        var game entities.SlotGame
+        if err := cursor.Decode(&game); err != nil {
+            return nil, err
+        }
+        games = append(games, game)
+    }
+
+    if err := cursor.Err(); err != nil {
+        return nil, err
+    }
+
+    return games, nil
+}

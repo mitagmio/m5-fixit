@@ -315,3 +315,37 @@ func (controller *SlotGameController) AddTokens(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, SuccessResponse{Status: "Tokens successfully added"})
 }
+
+// GetHistory - Контроллер для получения общей истории игр в слоты.
+// @Summary Получить историю всех игр в слоты
+// @Description Получить список всех игр в слоты с ограничением по количеству
+// @Tags Slots
+// @Accept json
+// @Produce json
+// @Param limit query int false "Лимит количества игр" default(50)
+// @Success 200 {array} GameRecord "Список игр"
+// @Failure 400 {object} ErrorResponse "Ошибка с некорректным лимитом"
+// @Failure 500 {object} ErrorResponse "Ошибка сервера при получении игр"
+// @Router /slots/history [get]
+func (controller *SlotGameController) GetHistory(c echo.Context) error {
+	// Получаем параметр limit из запроса
+	limitParam := c.QueryParam("limit")
+	limit := int64(50) // Значение по умолчанию
+
+	if limitParam != "" {
+		parsedLimit, err := strconv.ParseInt(limitParam, 10, 64)
+		if err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	// Вызов сервиса для получения всех игр
+	games, err := controller.SlotGameService.GetHistory(c.Request().Context(), limit)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("failed to get games history: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, games)
+}

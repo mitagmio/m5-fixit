@@ -421,3 +421,8 @@ func (service *SlotGameService) GetRecentGames(ctx context.Context, wallet strin
 	// Используем метод репозитория для получения последних игр.
 	return service.SlotRepository.GetRecentGames(ctx, wallet, limit)
 }
+
+// GetHistory - Получить общую историю игр в слоты.
+func (service *SlotGameService) GetHistory(ctx context.Context, limit int64) ([]slotEntities.SlotGame, error) {
+    return service.SlotRepository.GetHistory(ctx, limit)
+}
