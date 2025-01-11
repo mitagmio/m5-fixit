@@ -228,25 +228,40 @@ func (ds *UserDomainService) GetDailyGamesHistory(ctx context.Context, wallet st
 	startOfDay := time.Now().Truncate(24 * time.Hour)
 	endOfDay := startOfDay.Add(24 * time.Hour)
 
+	// Создаем фильтр с использованием $and для объединения всех условий
 	filter := bson.M{
-		"time_played": bson.M{
-			"$gte": startOfDay,
-			"$lt":  endOfDay,
-		},
-		"player1_wallet": wallet,
-		"$or": []bson.M{
-			{"$and": []bson.M{
-				{"bet_amount": bson.M{"$gte": 0.5}},
-				{"token_type": "ton_balance"},
-			}},
-			{"$and": []bson.M{
-				{"bet_amount": bson.M{"$gte": 5}},
-				{"token_type": "m5_balance"},
-			}},
-			{"$and": []bson.M{
-				{"bet_amount": bson.M{"$gte": 10}},
-				{"token_type": "dfc_balance"},
-			}},
+		"$and": []bson.M{
+			// Условие времени
+			{
+				"time_played": bson.M{
+					"$gte": startOfDay,
+					"$lt":  endOfDay,
+				},
+			},
+			// Условие для wallet
+			{
+				"$or": []bson.M{
+					{"player1_wallet": wallet},
+					{"player2_wallet": wallet},
+				},
+			},
+			// Условие для ставок и типов токенов
+			{
+				"$or": []bson.M{
+					{"$and": []bson.M{
+						{"bet_amount": bson.M{"$gte": 0.5}},
+						{"token_type": "ton_balance"},
+					}},
+					{"$and": []bson.M{
+						{"bet_amount": bson.M{"$gte": 5}},
+						{"token_type": "m5_balance"},
+					}},
+					{"$and": []bson.M{
+						{"bet_amount": bson.M{"$gte": 10}},
+						{"token_type": "dfc_balance"},
+					}},
+				},
+			},
 		},
 	}
 
