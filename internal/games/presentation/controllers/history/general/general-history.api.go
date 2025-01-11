@@ -98,12 +98,12 @@ func (c *GameHistoryController) SaveGame(ctx echo.Context) error {
 }
 
 // GetGamesHistory получает общую историю всех игр
-// @Summary Получает общую историю игр
-// @Description Возвращает список последних игр с ограничением по количеству
-// @Tags game-history
-// @Accept  json
-// @Produce  json
-// @Param limit query int false "Лимит количества записей" default(50)
+// @Summary Получить историю всех игр
+// @Description Получить список всех игр с ограничением по количеству
+// @Tags History
+// @Accept json
+// @Produce json
+// @Param limit query int false "Лимит количества игр" default(50)
 // @Success 200 {array} GameHistoryResponse
 // @Failure 500 {string} string "Ошибка при получении истории игр"
 // @Router /games/history [get]
