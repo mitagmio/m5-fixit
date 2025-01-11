@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	referral "github.com/Peranum/tg-dice/internal/referral/domain/services"
 	"github.com/Peranum/tg-dice/internal/user/domain/entities"
 	"github.com/Peranum/tg-dice/internal/user/domain/mapper"
 	"github.com/Peranum/tg-dice/internal/user/infrastructure/repositories"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type UserDomainService struct {
@@ -219,4 +221,74 @@ func (ds *UserDomainService) GetUsersSortedByPoints(ctx context.Context, limit i
 
 	log.Printf("[GetUsersSortedByPoints] Successfully fetched users sorted by points")
 	return domainUsers, nil
+}
+
+// GetDailyGamesHistory возвращает историю игр за текущие сутки
+func (ds *UserDomainService) GetDailyGamesHistory(ctx context.Context, wallet string) ([]entities.GameHistoryItem, []entities.GameHistoryItem, error) {
+	startOfDay := time.Now().Truncate(24 * time.Hour)
+	endOfDay := startOfDay.Add(24 * time.Hour)
+
+	filter := bson.M{
+		"time_played": bson.M{
+			"$gte": startOfDay,
+			"$lt":  endOfDay,
+		},
+		"player1_wallet": wallet,
+		"$or": []bson.M{
+			{"$and": []bson.M{
+				{"bet_amount": bson.M{"$gte": 0.5}},
+				{"token_type": "ton_balance"},
+			}},
+			{"$and": []bson.M{
+				{"bet_amount": bson.M{"$gte": 5}},
+				{"token_type": "m5_balance"},
+			}},
+			{"$and": []bson.M{
+				{"bet_amount": bson.M{"$gte": 10}},
+				{"token_type": "dfc_balance"},
+			}},
+		},
+	}
+
+	return ds.UserRepo.GetDailyGames(ctx, filter)
+}
+
+// CheckAndGiveDailyBonus проверяет и начисляет ежедневный бонус
+func (ds *UserDomainService) CheckAndGiveDailyBonus(ctx context.Context, wallet string) error {
+	pvpGames, botGames, err := ds.GetDailyGamesHistory(ctx, wallet)
+	if err != nil {
+		return err
+	}
+
+	totalGames := len(pvpGames) + len(botGames)
+	if totalGames >= 10 {
+		// Проверяем, не был ли уже начислен бонус сегодня
+		bonusGiven, err := ds.UserRepo.CheckDailyBonusStatus(ctx, wallet)
+		if err != nil {
+			return err
+		}
+
+		if !bonusGiven {
+			// Начисляем 2 кубика
+			if err := ds.UserRepo.AddCubes(ctx, wallet, 2); err != nil {
+				return err
+			}
+			// Отмечаем, что бонус начислен
+			if err := ds.UserRepo.SetDailyBonusGiven(ctx, wallet); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (ds *UserDomainService) CheckDailyBonusStatus(ctx context.Context, wallet string) (bool, error) {
+	// Получаем историю игр пользователя за сегодня
+	dailyGames, _, err := ds.GetDailyGamesHistory(ctx, wallet)
+	if err != nil {
+		return false, err
+	}
+
+	// Если есть игры сегодня, значит бонус уже получен
+	return len(dailyGames) > 0, nil
 }

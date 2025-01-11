@@ -30,17 +30,17 @@ type GameRecord struct {
 
 // GameHistoryResponse - структура для ответа API
 type GameHistoryResponse struct {
-	Player1Name     string    `json:"Player1Name"`
-	Player2Name     string    `json:"Player2Name"`
-	Player1Score    int       `json:"Player1Score"`
-	Player2Score    int       `json:"Player2Score"`
-	Winner          string    `json:"Winner"`
-	Player1Earnings float64   `json:"Player1Earnings"`
-	Player2Earnings float64   `json:"Player2Earnings"`
-	TimePlayed      time.Time `json:"TimePlayed"`
-	TokenType       string    `json:"TokenType"`
-	BetAmount       float64   `json:"BetAmount"`
-	Counter         int       `json:"Counter"`
+	Player1Name     string    `json:"player1_name"`     // изменено с Player1Name
+	Player2Name     string    `json:"player2_name"`     // изменено с Player2Name
+	Player1Score    int       `json:"player1_score"`    // изменено с Player1Score
+	Player2Score    int       `json:"player2_score"`    // изменено с Player2Score
+	Winner          string    `json:"winner"`           // изменено с Winner
+	Player1Earnings float64   `json:"player1_earnings"` // изменено с Player1Earnings
+	Player2Earnings float64   `json:"player2_earnings"` // изменено с Player2Earnings
+	TimePlayed      time.Time `json:"time_played"`      // изменено с TimePlayed
+	TokenType       string    `json:"token_type"`       // изменено с TokenType
+	BetAmount       float64   `json:"bet_amount"`       // изменено с BetAmount
+	Counter         int       `json:"counter"`          // изменено с Counter
 }
 
 type GameHistoryController struct {

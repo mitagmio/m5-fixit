@@ -158,6 +158,7 @@ func main() {
 	e.GET("/users/withdrawals/last-50", userController.GetLast50Withdrawals)
 	e.GET("/users/withdrawals/last-50-with-jetton", userController.GetLast50WithdrawalsWithJetton)
 	e.GET("/users/withdrawals/last-50-without-jetton", userController.GetLast50WithdrawalsWithoutJetton)
+	e.GET("/users/:wallet/bonus", userController.GetDailyBonus)
 	e.DELETE("/users/withdrawal/:id", userController.DeleteWithdrawal)
 	e.POST("/withdrawals", userController.CreateWithdrawal)
 
@@ -215,6 +216,7 @@ func main() {
 		websocketServer.HandleConnection(c.Response(), c.Request())
 		return nil
 	})
+	
 
 	// Запуск сервера
 	log.Printf("Запуск сервера на порту %s", port)

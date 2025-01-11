@@ -7,7 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Peranum/tg-dice/internal/user/infrastructure/odm-entities"
+	"github.com/Peranum/tg-dice/internal/user/domain/entities"
+	odm_entities "github.com/Peranum/tg-dice/internal/user/infrastructure/odm-entities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,13 +16,27 @@ import (
 )
 
 type UserRepository struct {
-	Collection *mongo.Collection
+	Collection      *mongo.Collection
+	bonusCollection *mongo.Collection
+	gameCollection  *mongo.Collection
 }
 
 func NewUserRepository(db *mongo.Database) *UserRepository {
-	return &UserRepository{
-		Collection: db.Collection("users"),
+	repo := &UserRepository{
+		Collection:      db.Collection("users"),
+		bonusCollection: db.Collection("daily_bonuses"),
+		gameCollection:  db.Collection("game_history"),
 	}
+
+	// Создаем индексы при инициализации
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := repo.CreateIndexes(ctx); err != nil {
+		log.Printf("Ошибка при создании индексов: %v", err)
+	}
+
+	return repo
 }
 
 func (ur *UserRepository) Create(ctx context.Context, user *odm_entities.UserEntity) (*odm_entities.UserEntity, error) {
@@ -241,35 +256,23 @@ func (ur *UserRepository) AddTokens(ctx context.Context, wallet string, tokenUpd
 	return nil
 }
 
+func (ur *UserRepository) AddCubes(ctx context.Context, wallet string, amount int) error {
+	filter := bson.M{"wallet": wallet}
+	update := bson.M{
+		"$inc": bson.M{"cubes": amount},
+		"$set": bson.M{"updated_at": time.Now()},
+	}
 
-func (ur *UserRepository) AddCubes(ctx context.Context, wallet string, cubes int) error {
-	// Находим текущего пользователя по кошельку
-	var user odm_entities.UserEntity
-	err := ur.Collection.FindOne(ctx, bson.M{"wallet": wallet}).Decode(&user)
+	result, err := ur.Collection.UpdateOne(ctx, filter, update)
 	if err != nil {
+		return err
+	}
+
+	if result.MatchedCount == 0 {
 		return errors.New("user not found")
 	}
 
-	// Проверяем, чтобы итоговый баланс кубов не стал отрицательным
-	if user.Cubes+cubes < 0 {
-		return errors.New("cubes cannot go negative")
-	}
-
-	// Увеличиваем количество кубов
-	_, err = ur.Collection.UpdateOne(
-		ctx,
-		bson.M{"wallet": wallet},
-		bson.M{
-			"$inc": bson.M{
-				"cubes": cubes,
-			},
-			"$set": bson.M{
-				"updated_at": time.Now(),
-			},
-		},
-	)
-
-	return err
+	return nil
 }
 
 func (r *UserRepository) DoesUserExist(ctx context.Context, wallet string) (bool, error) {
@@ -918,4 +921,92 @@ func (ur *UserRepository) ApplyPromoCodeRewards(ctx context.Context, wallet stri
 
 	log.Printf("[ApplyPromoCodeRewards] Rewards applied successfully to wallet: %s", wallet)
 	return nil
+}
+
+// DailyBonusStatus структура для хранения статуса бонуса
+type DailyBonusStatus struct {
+	Wallet  string    `bson:"wallet"`
+	Date    time.Time `bson:"date"`
+	IsGiven bool      `bson:"is_given"`
+}
+
+// CheckDailyBonusStatus проверяет, был ли начислен бонус сегодня
+func (ur *UserRepository) CheckDailyBonusStatus(ctx context.Context, wallet string) (bool, error) {
+	startOfDay := time.Now().UTC().Truncate(24 * time.Hour)
+
+	var status DailyBonusStatus
+	err := ur.bonusCollection.FindOne(ctx, bson.M{
+		"wallet": wallet,
+		"date": bson.M{
+			"$gte": startOfDay,
+		},
+	}).Decode(&status)
+
+	if err == mongo.ErrNoDocuments {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	return status.IsGiven, nil
+}
+
+// SetDailyBonusGiven отмечает, что бонус был выдан
+func (ur *UserRepository) SetDailyBonusGiven(ctx context.Context, wallet string) error {
+	startOfDay := time.Now().UTC().Truncate(24 * time.Hour)
+
+	_, err := ur.bonusCollection.UpdateOne(
+		ctx,
+		bson.M{"wallet": wallet, "date": bson.M{"$gte": startOfDay}},
+		bson.M{
+			"$set": bson.M{
+				"wallet":   wallet,
+				"date":     startOfDay,
+				"is_given": true,
+			},
+		},
+		options.Update().SetUpsert(true),
+	)
+
+	return err
+}
+
+// GetDailyGames получает игры пользователя за текущие сутки
+func (ur *UserRepository) GetDailyGames(ctx context.Context, filter bson.M) ([]entities.GameHistoryItem, []entities.GameHistoryItem, error) {
+	var pvpGames, botGames []entities.GameHistoryItem
+
+	cursor, err := ur.gameCollection.Find(ctx, filter)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var game entities.GameHistoryItem
+		if err := cursor.Decode(&game); err != nil {
+			continue
+		}
+
+		if game.Player2Name == "Bob" {
+			botGames = append(botGames, game)
+		} else {
+			pvpGames = append(pvpGames, game)
+		}
+	}
+
+	return pvpGames, botGames, nil
+}
+
+func (ur *UserRepository) CreateIndexes(ctx context.Context) error {
+	// Индекс для бонусов
+	_, err := ur.bonusCollection.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys: bson.D{
+			{Key: "wallet", Value: 1},
+			{Key: "date", Value: 1},
+		},
+		Options: options.Index().SetUnique(true),
+	})
+
+	return err
 }

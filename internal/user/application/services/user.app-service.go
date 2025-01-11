@@ -102,3 +102,12 @@ func (as *UserAppService) GetLast50WithdrawalsWithJetton(ctx context.Context, je
 func (as *UserAppService) GetLast50WithdrawalsWithoutJetton(ctx context.Context) ([]repositories.Withdrawal, error) {
 	return as.WithdrawalService.GetLast50WithdrawalsWithoutJetton(ctx)
 }
+
+func (as *UserAppService) GetDailyGamesHistory(ctx context.Context, wallet string) ([]entities.GameHistoryItem, []entities.GameHistoryItem, error) {
+	return as.DomainService.GetDailyGamesHistory(ctx, wallet)
+}
+
+func (as *UserAppService) CheckDailyBonusStatus(ctx context.Context, wallet string) (bool, error) {
+	bonusGiven, err := as.DomainService.CheckDailyBonusStatus(ctx, wallet)
+	return bonusGiven, err
+}

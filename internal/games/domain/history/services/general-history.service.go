@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Peranum/tg-dice/internal/games/infrastructure/history/entity"
+	entities "github.com/Peranum/tg-dice/internal/games/infrastructure/history/entity"
 	"github.com/Peranum/tg-dice/internal/games/infrastructure/history/repositories"
 	"github.com/Peranum/tg-dice/internal/games/presentation/websockets/history" // WebSocket сервер
 )

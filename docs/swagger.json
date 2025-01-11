@@ -1905,6 +1905,53 @@
                 }
             }
         },
+        "/users/{wallet}/bonus": {
+            "get": {
+                "description": "Get user's daily game history and bonus status",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get daily bonus status and game history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Wallet",
+                        "name": "wallet",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.DailyBonusResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/users/{wallet}/points": {
             "get": {
                 "description": "Retrieve the points and global rank of a user by their wallet",
@@ -2208,6 +2255,33 @@
                 }
             }
         },
+        "controllers.DailyBonusResponse": {
+            "type": "object",
+            "properties": {
+                "bonus_given": {
+                    "description": "Был ли начислен бонус",
+                    "type": "boolean"
+                },
+                "bot_games": {
+                    "description": "Игры против бота",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.GameHistoryItem"
+                    }
+                },
+                "pvp_games": {
+                    "description": "Игры против других игроков",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.GameHistoryItem"
+                    }
+                },
+                "total_games": {
+                    "description": "Общее количество игр за сутки",
+                    "type": "integer"
+                }
+            }
+        },
         "controllers.InitializeBotBalanceRequest": {
             "type": "object",
             "required": [
@@ -2337,6 +2411,35 @@
                     "type": "number"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.GameHistoryItem": {
+            "type": "object",
+            "properties": {
+                "bet_amount": {
+                    "type": "number"
+                },
+                "game_type": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "player1_name": {
+                    "type": "string"
+                },
+                "player2_name": {
+                    "type": "string"
+                },
+                "time_played": {
+                    "type": "string"
+                },
+                "token_type": {
+                    "type": "string"
+                },
+                "winner": {
                     "type": "string"
                 }
             }
@@ -2474,37 +2577,48 @@
         "general.GameHistoryResponse": {
             "type": "object",
             "properties": {
-                "BetAmount": {
+                "bet_amount": {
+                    "description": "изменено с BetAmount",
                     "type": "number"
                 },
-                "Counter": {
+                "counter": {
+                    "description": "изменено с Counter",
                     "type": "integer"
                 },
-                "Player1Earnings": {
+                "player1_earnings": {
+                    "description": "изменено с Player1Earnings",
                     "type": "number"
                 },
-                "Player1Name": {
+                "player1_name": {
+                    "description": "изменено с Player1Name",
                     "type": "string"
                 },
-                "Player1Score": {
+                "player1_score": {
+                    "description": "изменено с Player1Score",
                     "type": "integer"
                 },
-                "Player2Earnings": {
+                "player2_earnings": {
+                    "description": "изменено с Player2Earnings",
                     "type": "number"
                 },
-                "Player2Name": {
+                "player2_name": {
+                    "description": "изменено с Player2Name",
                     "type": "string"
                 },
-                "Player2Score": {
+                "player2_score": {
+                    "description": "изменено с Player2Score",
                     "type": "integer"
                 },
-                "TimePlayed": {
+                "time_played": {
+                    "description": "изменено с TimePlayed",
                     "type": "string"
                 },
-                "TokenType": {
+                "token_type": {
+                    "description": "изменено с TokenType",
                     "type": "string"
                 },
-                "Winner": {
+                "winner": {
+                    "description": "изменено с Winner",
                     "type": "string"
                 }
             }

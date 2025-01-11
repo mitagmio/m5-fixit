@@ -552,3 +552,47 @@ func (uc *UserController) GetLast50WithdrawalsWithoutJetton(ctx echo.Context) er
 
 	return ctx.JSON(http.StatusOK, withdrawals)
 }
+
+// DailyBonusResponse структура для ответа API
+type DailyBonusResponse struct {
+	PvPGames   []entities.GameHistoryItem `json:"pvp_games"`   // Игры против других игроков
+	BotGames   []entities.GameHistoryItem `json:"bot_games"`   // Игры против бота
+	TotalGames int                        `json:"total_games"` // Общее количество игр за сутки
+	BonusGiven bool                       `json:"bonus_given"` // Был ли начислен бонус
+}
+
+// GetDailyBonus handles GET /users/{wallet}/bonus
+// @Summary Get daily bonus status and game history
+// @Description Get user's daily game history and bonus status
+// @Tags users
+// @Produce json
+// @Param wallet path string true "User Wallet"
+// @Success 200 {object} DailyBonusResponse
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{wallet}/bonus [get]
+func (uc *UserController) GetDailyBonus(c echo.Context) error {
+	wallet := c.Param("wallet")
+	ctx := c.Request().Context()
+
+	// Получаем историю игр за текущие сутки
+	pvpGames, botGames, err := uc.UserAppService.GetDailyGamesHistory(ctx, wallet)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	// Проверяем статус бонуса
+	bonusGiven, err := uc.UserAppService.CheckDailyBonusStatus(ctx, wallet)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	response := DailyBonusResponse{
+		PvPGames:   pvpGames,
+		BotGames:   botGames,
+		TotalGames: len(pvpGames) + len(botGames),
+		BonusGiven: bonusGiven,
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
