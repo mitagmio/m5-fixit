@@ -104,7 +104,7 @@ func (c *GameHistoryController) SaveGame(ctx echo.Context) error {
 // @Accept  json
 // @Produce  json
 // @Param limit query int false "Лимит количества записей" default(50)
-// @Success 200 {array} GameRecord
+// @Success 200 {array} GameHistoryResponse
 // @Failure 500 {string} string "Ошибка при получении истории игр"
 // @Router /games/history [get]
 func (c *GameHistoryController) GetGamesHistory(ctx echo.Context) error {

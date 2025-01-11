@@ -335,7 +335,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/general.GameRecord"
+                                "$ref": "#/definitions/general.GameHistoryResponse"
                             }
                         }
                     },
@@ -2449,6 +2449,44 @@ const docTemplate = `{
                 "Expired",
                 "Depleted"
             ]
+        },
+        "general.GameHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "BetAmount": {
+                    "type": "number"
+                },
+                "Counter": {
+                    "type": "integer"
+                },
+                "Player1Earnings": {
+                    "type": "number"
+                },
+                "Player1Name": {
+                    "type": "string"
+                },
+                "Player1Score": {
+                    "type": "integer"
+                },
+                "Player2Earnings": {
+                    "type": "number"
+                },
+                "Player2Name": {
+                    "type": "string"
+                },
+                "Player2Score": {
+                    "type": "integer"
+                },
+                "TimePlayed": {
+                    "type": "string"
+                },
+                "TokenType": {
+                    "type": "string"
+                },
+                "Winner": {
+                    "type": "string"
+                }
+            }
         },
         "general.GameRecord": {
             "type": "object",
