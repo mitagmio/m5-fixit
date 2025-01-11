@@ -186,7 +186,7 @@ func (gs *BotGameService) PlayDiceGame(ctx context.Context, wallet string, token
 			log.Printf("[PlayDiceGame] Failed to update user balance after user lose: %v", err)
 			return nil, errors.New("failed to update user balance")
 		}
-		
+
 		if err := gs.UserService.CheckAndGiveDailyBonus(ctx, wallet); err != nil {
 			log.Printf("[PlayDiceGame] Failed to check daily bonus after win: %v", err)
 		}
@@ -214,7 +214,7 @@ func (gs *BotGameService) PlayDiceGame(ctx context.Context, wallet string, token
 		if err != nil {
 			log.Printf("Failed to add points for loss: %v", err)
 		}
-		
+
 		if err := gs.UserService.CheckAndGiveDailyBonus(ctx, wallet); err != nil {
 			log.Printf("[PlayDiceGame] Failed to check daily bonus after loss: %v", err)
 		}
