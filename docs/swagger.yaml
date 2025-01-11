@@ -71,6 +71,22 @@ definitions:
     - amount
     - token_type
     type: object
+  controllers.UserPointsResponse:
+    properties:
+      Points:
+        type: number
+      Rank:
+        type: integer
+    type: object
+  controllers.UserRankResponse:
+    properties:
+      FirstName:
+        type: string
+      Points:
+        type: number
+      Rank:
+        type: integer
+    type: object
   controllers.Withdrawal:
     properties:
       amount:
@@ -599,10 +615,10 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает список последних игр с ограничением по количеству
+      description: Получить список всех игр с ограничением по количеству
       parameters:
       - default: 50
-        description: Лимит количества записей
+        description: Лимит количества игр
         in: query
         name: limit
         type: integer
@@ -619,9 +635,9 @@ paths:
           description: Ошибка при получении истории игр
           schema:
             type: string
-      summary: Получает общую историю игр
+      summary: Получить историю всех игр
       tags:
-      - game-history
+      - History
     post:
       consumes:
       - application/json
@@ -1425,7 +1441,7 @@ paths:
       - users
   /users/{wallet}/points:
     get:
-      description: Retrieve the points of a user by their wallet
+      description: Retrieve the points and global rank of a user by their wallet
       parameters:
       - description: User Wallet
         in: path
@@ -1436,11 +1452,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: User Points
+          description: OK
           schema:
-            additionalProperties:
-              type: number
-            type: object
+            $ref: '#/definitions/controllers.UserPointsResponse'
         "404":
           description: Not Found
           schema:
@@ -1453,7 +1467,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Get user points by wallet
+      summary: Get user points and rank by wallet
       tags:
       - users
   /users/{wallet}/referral-code:
@@ -1601,13 +1615,15 @@ paths:
       - users
   /users/points:
     get:
-      description: Retrieve a list of users sorted by their points in descending order
+      description: Retrieve a list of users sorted by their points with rank
       parameters:
-      - description: Number of users to retrieve
+      - default: 50
+        description: Number of users to retrieve
         in: query
         name: limit
         type: integer
-      - description: Offset for pagination
+      - default: 0
+        description: Offset for pagination
         in: query
         name: offset
         type: integer
@@ -1618,7 +1634,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/entities.User'
+              $ref: '#/definitions/controllers.UserRankResponse'
             type: array
         "500":
           description: Internal Server Error

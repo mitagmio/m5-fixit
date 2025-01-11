@@ -309,7 +309,7 @@ const docTemplate = `{
         },
         "/games/history": {
             "get": {
-                "description": "Возвращает список последних игр с ограничением по количеству",
+                "description": "Получить список всех игр с ограничением по количеству",
                 "consumes": [
                     "application/json"
                 ],
@@ -317,14 +317,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "game-history"
+                    "History"
                 ],
-                "summary": "Получает общую историю игр",
+                "summary": "Получить историю всех игр",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 50,
-                        "description": "Лимит количества записей",
+                        "description": "Лимит количества игр",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1488,7 +1488,7 @@ const docTemplate = `{
         },
         "/users/points": {
             "get": {
-                "description": "Retrieve a list of users sorted by their points in descending order",
+                "description": "Retrieve a list of users sorted by their points with rank",
                 "produces": [
                     "application/json"
                 ],
@@ -1499,12 +1499,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "default": 50,
                         "description": "Number of users to retrieve",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "integer",
+                        "default": 0,
                         "description": "Offset for pagination",
                         "name": "offset",
                         "in": "query"
@@ -1516,7 +1518,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/entities.User"
+                                "$ref": "#/definitions/controllers.UserRankResponse"
                             }
                         }
                     },
@@ -1908,14 +1910,14 @@ const docTemplate = `{
         },
         "/users/{wallet}/points": {
             "get": {
-                "description": "Retrieve the points of a user by their wallet",
+                "description": "Retrieve the points and global rank of a user by their wallet",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "users"
                 ],
-                "summary": "Get user points by wallet",
+                "summary": "Get user points and rank by wallet",
                 "parameters": [
                     {
                         "type": "string",
@@ -1927,12 +1929,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "User Points",
+                        "description": "OK",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "number"
-                            }
+                            "$ref": "#/definitions/controllers.UserPointsResponse"
                         }
                     },
                     "404": {
@@ -2277,6 +2276,31 @@ const docTemplate = `{
                 "token_type": {
                     "description": "Тип токена (например, ton_balance)",
                     "type": "string"
+                }
+            }
+        },
+        "controllers.UserPointsResponse": {
+            "type": "object",
+            "properties": {
+                "Points": {
+                    "type": "number"
+                },
+                "Rank": {
+                    "type": "integer"
+                }
+            }
+        },
+        "controllers.UserRankResponse": {
+            "type": "object",
+            "properties": {
+                "FirstName": {
+                    "type": "string"
+                },
+                "Points": {
+                    "type": "number"
+                },
+                "Rank": {
+                    "type": "integer"
                 }
             }
         },
