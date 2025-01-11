@@ -142,7 +142,7 @@ func main() {
 	// Swagger
 	e.Static("/docs", "./docs")
 	e.GET("/swagger/*", echoSwagger.WrapHandler, middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
-		if username == "admin" && password == "username" {
+		if username == "admin" && password == "nameuser" {
 			return true, nil
 		}
 		return false, nil
