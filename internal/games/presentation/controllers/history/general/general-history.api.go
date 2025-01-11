@@ -1,11 +1,13 @@
 package general
 
 import (
-	"github.com/Peranum/tg-dice/internal/games/domain/history/services"
-	"github.com/labstack/echo/v4"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/Peranum/tg-dice/internal/games/domain/history/services"
+	"github.com/labstack/echo/v4"
 )
 
 // GameRecord структура для данных об игре
@@ -24,6 +26,21 @@ type GameRecord struct {
 	Player2Wallet   string  `json:"player2_wallet"`   // Кошелек второго игрока
 	Counter         int     `json:"counter"`          // Changed to int64
 
+}
+
+// GameHistoryResponse - структура для ответа API
+type GameHistoryResponse struct {
+	Player1Name     string    `json:"Player1Name"`
+	Player2Name     string    `json:"Player2Name"`
+	Player1Score    int       `json:"Player1Score"`
+	Player2Score    int       `json:"Player2Score"`
+	Winner          string    `json:"Winner"`
+	Player1Earnings float64   `json:"Player1Earnings"`
+	Player2Earnings float64   `json:"Player2Earnings"`
+	TimePlayed      time.Time `json:"TimePlayed"`
+	TokenType       string    `json:"TokenType"`
+	BetAmount       float64   `json:"BetAmount"`
+	Counter         int       `json:"Counter"`
 }
 
 type GameHistoryController struct {
@@ -108,7 +125,26 @@ func (c *GameHistoryController) GetGamesHistory(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, "Ошибка при получении истории игр")
 	}
 
-	return ctx.JSON(http.StatusOK, games)
+	// Преобразуем данные в формат ответа
+	var response []GameHistoryResponse
+	for _, game := range games {
+		historyItem := GameHistoryResponse{
+			Player1Name:     game.Player1Name,
+			Player2Name:     game.Player2Name,
+			Player1Score:    game.Player1Score,
+			Player2Score:    game.Player2Score,
+			Winner:          game.Winner,
+			Player1Earnings: game.Player1Earnings,
+			Player2Earnings: game.Player2Earnings,
+			TimePlayed:      game.TimePlayed,
+			TokenType:       game.TokenType,
+			BetAmount:       game.BetAmount,
+			Counter:         game.Counter,
+		}
+		response = append(response, historyItem)
+	}
+
+	return ctx.JSON(http.StatusOK, response)
 }
 
 // GetUserGameHistory получает историю игр для конкретного пользователя по кошельку
