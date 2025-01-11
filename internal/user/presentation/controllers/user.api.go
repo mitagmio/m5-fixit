@@ -581,16 +581,33 @@ func (uc *UserController) GetDailyBonus(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
+	// Ограничиваем количество игр для отображения
+	displayPvPGames := pvpGames
+	if len(displayPvPGames) > 5 {
+		displayPvPGames = displayPvPGames[:5]
+	}
+
+	displayBotGames := botGames
+	if len(displayBotGames) > 5 {
+		displayBotGames = displayBotGames[:5]
+	}
+
 	// Проверяем статус бонуса
 	bonusGiven, err := uc.UserAppService.CheckDailyBonusStatus(ctx, wallet)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
+	// Общее количество игр не должно превышать 10
+	totalGames := len(displayPvPGames) + len(displayBotGames)
+	if totalGames > 10 {
+		totalGames = 10
+	}
+
 	response := DailyBonusResponse{
-		PvPGames:   pvpGames,
-		BotGames:   botGames,
-		TotalGames: len(pvpGames) + len(botGames),
+		PvPGames:   displayPvPGames,
+		BotGames:   displayBotGames,
+		TotalGames: totalGames,
 		BonusGiven: bonusGiven,
 	}
 
