@@ -277,19 +277,26 @@ func (uc *UserController) GetUserByName(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
+// UserPointsResponse структура для ответа API
+type UserPointsResponse struct {
+	Points float64 `json:"Points"`
+	Rank   int     `json:"Rank"`
+}
+
 // GetUserPointsByWallet handles GET /users/{wallet}/points
-// @Summary Get user points by wallet
-// @Description Retrieve the points of a user by their wallet
+// @Summary Get user points and rank by wallet
+// @Description Retrieve the points and global rank of a user by their wallet
 // @Tags users
 // @Produce json
 // @Param wallet path string true "User Wallet"
-// @Success 200 {object} map[string]float64 "User Points"
+// @Success 200 {object} UserPointsResponse
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{wallet}/points [get]
 func (uc *UserController) GetUserPointsByWallet(c echo.Context) error {
 	wallet := c.Param("wallet")
 
+	// Получаем очки пользователя
 	points, err := uc.UserAppService.GetUserPointsByWallet(c.Request().Context(), wallet)
 	if err != nil {
 		if err.Error() == "user not found" {
@@ -298,7 +305,27 @@ func (uc *UserController) GetUserPointsByWallet(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, map[string]float64{"points": points})
+	// Получаем ранг пользователя
+	users, err := uc.UserAppService.GetUsersSortedByPoints(c.Request().Context(), 10000000, 0) // Большой лимит для получения всех пользователей
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	// Находим ранг пользователя
+	rank := 1
+	for i, user := range users {
+		if user.Wallet == wallet {
+			rank = i + 1
+			break
+		}
+	}
+
+	response := UserPointsResponse{
+		Points: points,
+		Rank:   rank,
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 // UserRankResponse - структура для ответа API рейтинга
@@ -307,7 +334,6 @@ type UserRankResponse struct {
 	Points    float64 `json:"Points"`
 	Rank      int     `json:"Rank"`
 }
-
 
 // GetUsersSortedByPoints handles GET /users/points
 // @Summary Get users sorted by points
