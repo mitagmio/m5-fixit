@@ -301,18 +301,26 @@ func (uc *UserController) GetUserPointsByWallet(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]float64{"points": points})
 }
 
+// UserRankResponse - структура для ответа API рейтинга
+type UserRankResponse struct {
+	FirstName string  `json:"FirstName"`
+	Points    float64 `json:"Points"`
+	Rank      int     `json:"Rank"`
+}
+
+
 // GetUsersSortedByPoints handles GET /users/points
 // @Summary Get users sorted by points
-// @Description Retrieve a list of users sorted by their points in descending order
+// @Description Retrieve a list of users sorted by their points with rank
 // @Tags users
 // @Produce json
-// @Param limit query int false "Number of users to retrieve"
-// @Param offset query int false "Offset for pagination"
-// @Success 200 {array} entities.User
+// @Param limit query int false "Number of users to retrieve" default(50)
+// @Param offset query int false "Offset for pagination" default(0)
+// @Success 200 {array} UserRankResponse
 // @Failure 500 {object} map[string]string
 // @Router /users/points [get]
 func (uc *UserController) GetUsersSortedByPoints(c echo.Context) error {
-	limit := int64(10)
+	limit := int64(50)
 	offset := int64(0)
 
 	if l := c.QueryParam("limit"); l != "" {
@@ -333,7 +341,18 @@ func (uc *UserController) GetUsersSortedByPoints(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
 
-	return c.JSON(http.StatusOK, users)
+	// Преобразуем в формат ответа с рангом
+	var response []UserRankResponse
+	for i, user := range users {
+		rank := int(offset) + i + 1 // Вычисляем ранг на основе смещения и позиции
+		response = append(response, UserRankResponse{
+			FirstName: user.FirstName,
+			Points:    user.Points,
+			Rank:      rank,
+		})
+	}
+
+	return c.JSON(http.StatusOK, response)
 }
 
 type CreateWithdrawalRequest struct {
