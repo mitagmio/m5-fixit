@@ -107,7 +107,13 @@ func main() {
 
 	// Репозитории и сервисы для игры с ботом
 	botRepo := botRepositories.NewBotRepository(db)
-	botGameService := botServices.NewBotGameService(botRepo, userRepo, historyService, referralService)
+	botGameService := botServices.NewBotGameService(
+		botRepo,
+		userRepo,
+		historyService,
+		referralService,
+		userDomainService,
+	)
 	botGameController := botControllers.NewBotGameController(botGameService)
 
 	// Репозитории и сервисы для слотов
@@ -204,7 +210,7 @@ func main() {
 	e.POST("/test_post", testHandler.ValidateTestQuery)
 
 	// Инициализация сервиса PvP игр
-	pvpService := presentation.NewDicePVPGameService(userRepo, historyService)
+	pvpService := presentation.NewDicePVPGameService(userRepo, historyService, userDomainService)
 
 	// Добавляем маршруты для WebSocket
 	e.GET("/ws/dice", func(c echo.Context) error {
@@ -216,7 +222,6 @@ func main() {
 		websocketServer.HandleConnection(c.Response(), c.Request())
 		return nil
 	})
-	
 
 	// Запуск сервера
 	log.Printf("Запуск сервера на порту %s", port)

@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Peranum/tg-dice/internal/games/domain/history/services" // Сервис для сохранения игры
-	"github.com/Peranum/tg-dice/internal/games/infrastructure/bot/entity"
-	botRepos "github.com/Peranum/tg-dice/internal/games/infrastructure/bot/repositories"
-	refService "github.com/Peranum/tg-dice/internal/referral/domain/services"
-	userRepos "github.com/Peranum/tg-dice/internal/user/infrastructure/repositories"
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/Peranum/tg-dice/internal/games/domain/history/services" // Сервис для сохранения игры
+	entities "github.com/Peranum/tg-dice/internal/games/infrastructure/bot/entity"
+	botRepos "github.com/Peranum/tg-dice/internal/games/infrastructure/bot/repositories"
+	refService "github.com/Peranum/tg-dice/internal/referral/domain/services"
+	userServices "github.com/Peranum/tg-dice/internal/user/domain/services"
+	userRepos "github.com/Peranum/tg-dice/internal/user/infrastructure/repositories"
 )
 
 type DiceGameResult struct {
@@ -28,20 +30,23 @@ type BotGameService struct {
 	BotRepo     *botRepos.BotRepository
 	UserRepo    *userRepos.UserRepository
 	GameService *services.GameService
-	RefService  *refService.ReferralService // Убедитесь, что поле объявлено
+	RefService  *refService.ReferralService
+	UserService *userServices.UserDomainService
 }
 
 func NewBotGameService(
 	botRepo *botRepos.BotRepository,
 	userRepo *userRepos.UserRepository,
 	gameService *services.GameService,
-	refService *refService.ReferralService, // Передаем refService как аргумент
+	refService *refService.ReferralService,
+	userService *userServices.UserDomainService,
 ) *BotGameService {
 	return &BotGameService{
 		BotRepo:     botRepo,
 		UserRepo:    userRepo,
 		GameService: gameService,
-		RefService:  refService, // Инициализируем поле RefService
+		RefService:  refService,
+		UserService: userService,
 	}
 }
 
@@ -224,6 +229,10 @@ func (gs *BotGameService) PlayDiceGame(ctx context.Context, wallet string, token
 	)
 	if err != nil {
 		log.Printf("Error saving game results: %v", err)
+	}
+
+	if err := gs.UserService.CheckAndGiveDailyBonus(ctx, wallet); err != nil {
+		log.Printf("[PlayDiceGame] Failed to check daily bonus: %v", err)
 	}
 
 	// Формирование результата игры

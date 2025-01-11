@@ -260,8 +260,8 @@ func (ds *UserDomainService) CheckAndGiveDailyBonus(ctx context.Context, wallet 
 		return err
 	}
 
-	totalGames := len(pvpGames) + len(botGames)
-	if totalGames >= 10 {
+	// Проверяем количество игр каждого типа
+	if len(pvpGames) >= 5 && len(botGames) >= 5 {
 		// Проверяем, не был ли уже начислен бонус сегодня
 		bonusGiven, err := ds.UserRepo.CheckDailyBonusStatus(ctx, wallet)
 		if err != nil {
@@ -269,6 +269,9 @@ func (ds *UserDomainService) CheckAndGiveDailyBonus(ctx context.Context, wallet 
 		}
 
 		if !bonusGiven {
+			log.Printf("[CheckAndGiveDailyBonus] Giving bonus to wallet %s (PvP games: %d, Bot games: %d)",
+				wallet, len(pvpGames), len(botGames))
+
 			// Начисляем 2 кубика
 			if err := ds.UserRepo.AddCubes(ctx, wallet, 2); err != nil {
 				return err
@@ -284,11 +287,21 @@ func (ds *UserDomainService) CheckAndGiveDailyBonus(ctx context.Context, wallet 
 
 func (ds *UserDomainService) CheckDailyBonusStatus(ctx context.Context, wallet string) (bool, error) {
 	// Получаем историю игр пользователя за сегодня
-	dailyGames, _, err := ds.GetDailyGamesHistory(ctx, wallet)
+	pvpGames, botGames, err := ds.GetDailyGamesHistory(ctx, wallet)
 	if err != nil {
 		return false, err
 	}
 
-	// Если есть игры сегодня, значит бонус уже получен
-	return len(dailyGames) > 0, nil
+	totalGames := len(pvpGames) + len(botGames)
+	log.Printf("[CheckDailyBonusStatus] Wallet: %s, Total games: %d (PvP: %d, Bot: %d)",
+		wallet, totalGames, len(pvpGames), len(botGames))
+
+	// Проверяем статус бонуса в базе данных
+	bonusGiven, err := ds.UserRepo.CheckDailyBonusStatus(ctx, wallet)
+	if err != nil {
+		return false, err
+	}
+
+	log.Printf("[CheckDailyBonusStatus] Wallet: %s, Bonus given: %v", wallet, bonusGiven)
+	return bonusGiven, nil
 }

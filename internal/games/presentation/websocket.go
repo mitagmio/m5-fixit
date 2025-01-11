@@ -15,6 +15,7 @@ import (
 
 	// Наш сервис для сохранения истории игр
 	gameServices "github.com/Peranum/tg-dice/internal/games/domain/history/services"
+	userServices "github.com/Peranum/tg-dice/internal/user/domain/services"
 )
 
 // =======================================
@@ -66,6 +67,7 @@ type DicePVPGameService struct {
 
 	// Внедряем GameService, чтобы сохранять записи об играх
 	gameService *gameServices.GameService
+	userService *userServices.UserDomainService
 }
 
 // =======================================
@@ -74,6 +76,7 @@ type DicePVPGameService struct {
 func NewDicePVPGameService(
 	userRepo *repositories.UserRepository,
 	gameService *gameServices.GameService,
+	userService *userServices.UserDomainService,
 ) *DicePVPGameService {
 	return &DicePVPGameService{
 		lobbies: make(map[string]*Lobby),
@@ -85,6 +88,7 @@ func NewDicePVPGameService(
 		},
 		userRepo:    userRepo,
 		gameService: gameService,
+		userService: userService,
 	}
 }
 
@@ -911,6 +915,15 @@ func (s *DicePVPGameService) RollDice(player *Player, lobbyID string) {
 
 			s.BroadcastLobbyList()
 			log.Printf("[RollDice] Игра завершена. Победитель: %s", winner)
+
+			// После обновления балансов и начисления очков
+			if err := s.userService.CheckAndGiveDailyBonus(ctx, winnerPlayer.Wallet); err != nil {
+				log.Printf("[TerminateGame] Failed to check daily bonus for winner: %v", err)
+			}
+			if err := s.userService.CheckAndGiveDailyBonus(ctx, loserPlayer.Wallet); err != nil {
+				log.Printf("[TerminateGame] Failed to check daily bonus for loser: %v", err)
+			}
+
 			return
 		}
 
@@ -995,7 +1008,7 @@ func (s *DicePVPGameService) ConfirmReady(player *Player, lobbyID string) error 
 			"player_id":     "player2",
 			"player_name":   lobby.Player2.FirstName,
 			"lobby_id":      lobby.ID,
-			"target_score":  lobby.TargetScore,
+			"target_score": lobby.TargetScore,
 			"current_round": lobby.CurrentRound,
 			"token_type":    lobby.TokenType,
 			"bet_amount":    lobby.BetAmount,
