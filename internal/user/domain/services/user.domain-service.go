@@ -260,6 +260,9 @@ func (ds *UserDomainService) CheckAndGiveDailyBonus(ctx context.Context, wallet 
 		return err
 	}
 
+	log.Printf("[CheckAndGiveDailyBonus] Wallet: %s, PvP games: %d, Bot games: %d",
+		wallet, len(pvpGames), len(botGames))
+
 	// Проверяем количество игр каждого типа
 	if len(pvpGames) >= 5 && len(botGames) >= 5 {
 		// Проверяем, не был ли уже начислен бонус сегодня
