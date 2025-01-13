@@ -49,20 +49,20 @@ func (s *WithdrawalService) CreateWithdrawal(ctx context.Context, amount float64
 		tokenType = "ton_balance" // Default to ton_balance if jettonName is not provided
 	}
 
-	maxLimits := map[string]float64{
-		"ton_balance": 10.0,
-		"m5_balance":  10.0,
-		"dfc_balance": 10.0,
-	}
+	// maxLimits := map[string]float64{
+	// 	"ton_balance": 10.0,
+	// 	"m5_balance":  10.0,
+	// 	"dfc_balance": 10.0,
+	// }
 
-	// Check if the requested amount exceeds the maximum limit
-	if limit, exists := maxLimits[tokenType]; exists {
-		if amount > limit {
-			return fmt.Errorf("withdrawal amount exceeds the maximum limit of %.2f for %s", limit, tokenType)
-		}
-	} else {
-		return errors.New("invalid token type")
-	}
+	// // Check if the requested amount exceeds the maximum limit
+	// if limit, exists := maxLimits[tokenType]; exists {
+	// 	if amount > limit {
+	// 		return fmt.Errorf("withdrawal amount exceeds the maximum limit of %.2f for %s", limit, tokenType)
+	// 	}
+	// } else {
+	// 	return errors.New("invalid token type")
+	// }
 
 	// Check if the user has sufficient balance for the withdrawal
 	hasSufficientBalance, err := s.UserRepo.HasSufficientBalance(ctx, wallet, tokenType, amount)
