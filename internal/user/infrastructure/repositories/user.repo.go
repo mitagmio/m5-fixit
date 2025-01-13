@@ -16,16 +16,20 @@ import (
 )
 
 type UserRepository struct {
-	Collection      *mongo.Collection
-	bonusCollection *mongo.Collection
-	gameCollection  *mongo.Collection
+	Collection           *mongo.Collection
+	bonusCollection      *mongo.Collection
+	gameCollection       *mongo.Collection
+	depositCollection    *mongo.Collection
+	withdrawalCollection *mongo.Collection
 }
 
 func NewUserRepository(db *mongo.Database) *UserRepository {
 	repo := &UserRepository{
-		Collection:      db.Collection("users"),
-		bonusCollection: db.Collection("daily_bonuses"),
-		gameCollection:  db.Collection("game_history"),
+		Collection:           db.Collection("users"),
+		bonusCollection:      db.Collection("daily_bonuses"),
+		gameCollection:       db.Collection("game_history"),
+		depositCollection:    db.Collection("deposits"),
+		withdrawalCollection: db.Collection("withdrawals"),
 	}
 
 	// Создаем индексы при инициализации
@@ -354,11 +358,82 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		return nil, err
 	}
 
-	// Возвращаем балансы токенов и кубов
+	// Получаем сумму депозитов по типам токенов
+	depositPipeline := []bson.M{
+		{
+			"$match": bson.M{"sender": wallet},
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$type",
+				"total": bson.M{"$sum": "$amount"},
+			},
+		},
+	}
+
+	depositCursor, err := ur.depositCollection.Aggregate(ctx, depositPipeline)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении депозитов: %v", err)
+	}
+	defer depositCursor.Close(ctx)
+
+	deposits := make(map[string]float64)
+	for depositCursor.Next(ctx) {
+		var result struct {
+			ID    string  `bson:"_id"`
+			Total float64 `bson:"total"`
+		}
+		if err := depositCursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("ошибка при декодировании депозитов: %v", err)
+		}
+		deposits[result.ID] = result.Total
+	}
+
+	// Получаем сумму выводов по типам токенов
+	withdrawalPipeline := []bson.M{
+		{
+			"$match": bson.M{
+				"wallet": wallet,
+				"status": bson.M{
+					"$nin": []string{StatusCancelAdmin, ""},
+				},
+			},
+		},
+		{
+			"$group": bson.M{
+				"_id":   "$jetton_name",
+				"total": bson.M{"$sum": "$amount"},
+			},
+		},
+	}
+
+	withdrawalCursor, err := ur.withdrawalCollection.Aggregate(ctx, withdrawalPipeline)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении выводов: %v", err)
+	}
+	defer withdrawalCursor.Close(ctx)
+
+	withdrawals := make(map[string]float64)
+	for withdrawalCursor.Next(ctx) {
+		var result struct {
+			ID    string  `bson:"_id"`
+			Total float64 `bson:"total"`
+		}
+		if err := withdrawalCursor.Decode(&result); err != nil {
+			return nil, fmt.Errorf("ошибка при декодировании выводов: %v", err)
+		}
+		withdrawals[result.ID] = result.Total
+	}
+
+	// Вычисляем итоговые балансы
+	tonBalance := user.Ton_balance + deposits["ton"] - withdrawals["ton"]
+	m5Balance := user.M5_balance + deposits["m5"] - withdrawals["m5"]
+	dfcBalance := user.Dfc_balance + deposits["dfc"] - withdrawals["dfc"]
+
 	balances := map[string]interface{}{
-		"ton_balance": user.Ton_balance,
-		"m5_balance":  user.M5_balance,
-		"dfc_balance": user.Dfc_balance,
+		"ton_balance": tonBalance,
+		"m5_balance":  m5Balance,
+		"dfc_balance": dfcBalance,
 		"cubes":       user.Cubes,
 	}
 	return balances, nil
