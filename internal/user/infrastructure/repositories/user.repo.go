@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Peranum/tg-dice/internal/user/domain/entities"
@@ -351,8 +350,8 @@ func (ur *UserRepository) HasSufficientBalance(ctx context.Context, wallet strin
 
 // Изменяем структуру для результатов агрегации
 type aggregationResult struct {
-	ID    string               `bson:"_id"`
-	Total primitive.Decimal128 `bson:"total"`
+	ID    string  `bson:"_id"`
+	Total float64 `bson:"total"`
 }
 
 func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (map[string]interface{}, error) {
@@ -372,8 +371,12 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		},
 		{
 			"$group": bson.M{
-				"_id":   "$type",
-				"total": bson.M{"$sum": "$amount"},
+				"_id": "$type",
+				"total": bson.M{
+					"$sum": bson.M{
+						"$toDouble": "$amount",
+					},
+				},
 			},
 		},
 	}
@@ -390,13 +393,7 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		if err := depositCursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("ошибка при декодировании депозитов: %v", err)
 		}
-		// Конвертируем Decimal128 в строку, затем в float64
-		str := result.Total.String()
-		val, err := strconv.ParseFloat(str, 64)
-		if err != nil {
-			return nil, fmt.Errorf("ошибка конвертации депозита: %v", err)
-		}
-		deposits[result.ID] = val
+		deposits[result.ID] = result.Total
 	}
 
 	// Получаем сумму выводов по типам токенов
@@ -411,8 +408,12 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		},
 		{
 			"$group": bson.M{
-				"_id":   "$jetton_name",
-				"total": bson.M{"$sum": "$amount"},
+				"_id": "$jetton_name",
+				"total": bson.M{
+					"$sum": bson.M{
+						"$toDouble": "$amount",
+					},
+				},
 			},
 		},
 	}
@@ -429,13 +430,7 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		if err := withdrawalCursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("ошибка при декодировании выводов: %v", err)
 		}
-		// Конвертируем Decimal128 в строку, затем в float64
-		str := result.Total.String()
-		val, err := strconv.ParseFloat(str, 64)
-		if err != nil {
-			return nil, fmt.Errorf("ошибка конвертации вывода: %v", err)
-		}
-		withdrawals[result.ID] = val
+		withdrawals[result.ID] = result.Total
 	}
 
 	// Вычисляем итоговые балансы с проверкой на nil
