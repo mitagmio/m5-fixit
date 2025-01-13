@@ -402,7 +402,7 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 			"$match": bson.M{
 				"wallet": wallet,
 				"status": bson.M{
-					"$nin": []string{StatusCancelAdmin, ""},
+					"$nin": []string{StatusCancelAdmin, StatusWithdrawingTrxFail, ""},
 				},
 			},
 		},

@@ -174,6 +174,8 @@ const (
 	StatusWithdrawingSuccess    = "WITHDRAWING_SUCCESS"
 	StatusWithdrawingError      = "WITHDRAWING_ERROR"
 	StatusWithdrawingErrorSeqno = "WITHDRAWING_ERROR_SEQNO"
+	StatusWithdrawingTrxFail    = "WITHDRAWING_TRX_FAIL"
+	StatusWithdrawingTrxUnknown = "WITHDRAWING_TRX_UNKNOWN"
 	StatusCancelAdmin           = "CANCEL_ADMIN"
 	StatusError                 = "ERROR"
 )
