@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Peranum/tg-dice/internal/user/domain/entities"
@@ -348,6 +349,12 @@ func (ur *UserRepository) HasSufficientBalance(ctx context.Context, wallet strin
 	return false, nil
 }
 
+// Изменяем структуру для результатов агрегации
+type aggregationResult struct {
+	ID    string               `bson:"_id"`
+	Total primitive.Decimal128 `bson:"total"`
+}
+
 func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (map[string]interface{}, error) {
 	var user odm_entities.UserEntity
 	err := ur.Collection.FindOne(ctx, bson.M{"wallet": wallet}).Decode(&user)
@@ -379,14 +386,17 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 
 	deposits := make(map[string]float64)
 	for depositCursor.Next(ctx) {
-		var result struct {
-			ID    string  `bson:"_id"`
-			Total float64 `bson:"total"`
-		}
+		var result aggregationResult
 		if err := depositCursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("ошибка при декодировании депозитов: %v", err)
 		}
-		deposits[result.ID] = result.Total
+		// Конвертируем Decimal128 в строку, затем в float64
+		str := result.Total.String()
+		val, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка конвертации депозита: %v", err)
+		}
+		deposits[result.ID] = val
 	}
 
 	// Получаем сумму выводов по типам токенов
@@ -415,20 +425,34 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 
 	withdrawals := make(map[string]float64)
 	for withdrawalCursor.Next(ctx) {
-		var result struct {
-			ID    string  `bson:"_id"`
-			Total float64 `bson:"total"`
-		}
+		var result aggregationResult
 		if err := withdrawalCursor.Decode(&result); err != nil {
 			return nil, fmt.Errorf("ошибка при декодировании выводов: %v", err)
 		}
-		withdrawals[result.ID] = result.Total
+		// Конвертируем Decimal128 в строку, затем в float64
+		str := result.Total.String()
+		val, err := strconv.ParseFloat(str, 64)
+		if err != nil {
+			return nil, fmt.Errorf("ошибка конвертации вывода: %v", err)
+		}
+		withdrawals[result.ID] = val
 	}
 
-	// Вычисляем итоговые балансы
-	tonBalance := user.Ton_balance + deposits["ton"] - withdrawals["ton"]
-	m5Balance := user.M5_balance + deposits["m5"] - withdrawals["m5"]
-	dfcBalance := user.Dfc_balance + deposits["dfc"] - withdrawals["dfc"]
+	// Вычисляем итоговые балансы с проверкой на nil
+	tonBalance := user.Ton_balance + deposits["ton"]
+	if withdrawals["ton"] > 0 {
+		tonBalance -= withdrawals["ton"]
+	}
+
+	m5Balance := user.M5_balance + deposits["m5"]
+	if withdrawals["m5"] > 0 {
+		m5Balance -= withdrawals["m5"]
+	}
+
+	dfcBalance := user.Dfc_balance + deposits["dfc"]
+	if withdrawals["dfc"] > 0 {
+		dfcBalance -= withdrawals["dfc"]
+	}
 
 	balances := map[string]interface{}{
 		"ton_balance": tonBalance,
@@ -436,6 +460,7 @@ func (ur *UserRepository) GetUserBalances(ctx context.Context, wallet string) (m
 		"dfc_balance": dfcBalance,
 		"cubes":       user.Cubes,
 	}
+
 	return balances, nil
 }
 
