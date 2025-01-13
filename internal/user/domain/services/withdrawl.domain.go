@@ -63,6 +63,7 @@ func (s *WithdrawalService) CreateWithdrawal(ctx context.Context, amount float64
 	} else {
 		return errors.New("invalid token type")
 	}
+
 	// Check if the user has sufficient balance for the withdrawal
 	hasSufficientBalance, err := s.UserRepo.HasSufficientBalance(ctx, wallet, tokenType, amount)
 	if err != nil {
@@ -71,16 +72,6 @@ func (s *WithdrawalService) CreateWithdrawal(ctx context.Context, amount float64
 
 	if !hasSufficientBalance {
 		return errors.New("insufficient balance")
-	}
-
-	// Deduct the amount from the user's balance
-	tokenUpdates := map[string]float64{
-		tokenType: -amount, // Deducting the amount
-	}
-
-	err = s.UserRepo.AddTokens(ctx, wallet, tokenUpdates)
-	if err != nil {
-		return fmt.Errorf("error deducting tokens: %v", err)
 	}
 
 	// Create the withdrawal record
