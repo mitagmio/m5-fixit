@@ -28,7 +28,7 @@ func NewUserRepository(db *mongo.Database) *UserRepository {
 		Collection:           db.Collection("users"),
 		bonusCollection:      db.Collection("daily_bonuses"),
 		gameCollection:       db.Collection("game_history"),
-		depositCollection:    db.Collection("deposits"),
+		depositCollection:    db.Collection("deposit"),
 		withdrawalCollection: db.Collection("withdrawals"),
 	}
 
